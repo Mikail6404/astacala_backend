@@ -27,6 +27,7 @@ class UserController extends Controller
                 'address' => $user->address,
                 'profilePictureUrl' => $user->profile_picture_url,
                 'role' => $user->role,
+                'organization' => $user->organization,
                 'emergencyContacts' => $user->emergency_contacts ?? [],
                 'joinedAt' => $user->created_at,
                 'isActive' => $user->is_active,
@@ -44,6 +45,7 @@ class UserController extends Controller
             'name' => 'sometimes|string|max:255',
             'phone' => 'sometimes|nullable|string|max:50',
             'address' => 'sometimes|nullable|string',
+            'organization' => 'sometimes|nullable|string|max:255',
             'emergencyContacts' => 'sometimes|array',
             'emergencyContacts.*.name' => 'required_with:emergencyContacts|string|max:255',
             'emergencyContacts.*.phone' => 'required_with:emergencyContacts|string|max:50',
@@ -59,7 +61,7 @@ class UserController extends Controller
         }
 
         $user = $request->user();
-        $user->update($request->only(['name', 'phone', 'address', 'emergency_contacts']));
+        $user->update($request->only(['name', 'phone', 'address', 'organization', 'emergency_contacts']));
 
         return response()->json([
             'success' => true,
@@ -72,6 +74,7 @@ class UserController extends Controller
                 'address' => $user->address,
                 'profilePictureUrl' => $user->profile_picture_url,
                 'role' => $user->role,
+                'organization' => $user->organization,
                 'emergencyContacts' => $user->emergency_contacts ?? [],
                 'isActive' => $user->is_active,
             ]

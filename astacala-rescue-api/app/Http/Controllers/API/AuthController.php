@@ -19,9 +19,11 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|confirmed',
             'phone' => 'nullable|string|max:50',
             'role' => 'nullable|in:VOLUNTEER,COORDINATOR,ADMIN',
+            'organization' => 'nullable|string|max:255',
+            'birth_date' => 'nullable|date',
         ]);
 
         if ($validator->fails()) {
@@ -38,6 +40,8 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
             'role' => $request->role ?? 'VOLUNTEER',
+            'organization' => $request->organization,
+            'birth_date' => $request->birth_date,
         ]);
 
         $token = $user->createToken('astacala-app')->plainTextToken;

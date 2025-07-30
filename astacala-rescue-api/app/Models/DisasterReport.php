@@ -70,4 +70,20 @@ class DisasterReport extends Model
     {
         return $this->hasMany(Notification::class, 'related_report_id');
     }
+
+    /**
+     * Get forum messages for this disaster report.
+     */
+    public function forumMessages()
+    {
+        return $this->hasMany(ForumMessage::class);
+    }
+
+    /**
+     * Get the latest forum message for this report.
+     */
+    public function latestForumMessage()
+    {
+        return $this->hasOne(ForumMessage::class)->latest();
+    }
 }

@@ -24,6 +24,8 @@ class User extends Authenticatable
         'address',
         'profile_picture_url',
         'role',
+        'organization',
+        'birth_date',
         'emergency_contacts',
         'is_active',
         'email_verified',
