@@ -3,15 +3,27 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Services\CrossPlatformDataMapper;
+use App\Http\Services\CrossPlatformValidator;
 use App\Models\DisasterReport;
 use App\Models\ReportImage;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class DisasterReportController extends Controller
 {
+    protected $dataMapper;
+    protected $crossValidator;
+
+    public function __construct(CrossPlatformDataMapper $dataMapper, CrossPlatformValidator $crossValidator)
+    {
+        $this->dataMapper = $dataMapper;
+        $this->crossValidator = $crossValidator;
+    }
+
     /**
      * Display a listing of disaster reports.
      */
@@ -299,172 +311,167 @@ class DisasterReportController extends Controller
 
     /**
      * Submit a disaster report from web application
-     * Cross-platform compatibility endpoint
+     * Cross-platform compatibility endpoint with enhanced validation
      */
     public function webSubmit(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'disaster_type' => 'required|string|in:EARTHQUAKE,FLOOD,FIRE,HURRICANE,TSUNAMI,LANDSLIDE,VOLCANO,DROUGHT,BLIZZARD,TORNADO,OTHER',
-            'severity_level' => 'required|in:LOW,MEDIUM,HIGH,CRITICAL',
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
-            'location_name' => 'required|string|max:255',
-            'address' => 'nullable|string',
-            'estimated_affected' => 'nullable|integer|min:0',
-            'weather_condition' => 'nullable|string',
-            'incident_timestamp' => 'required|date',
-            'images' => 'nullable|array|max:5',
-            'images.*' => 'url', // For web, we expect image URLs
-            'reporter_contact' => 'nullable|string|max:255',
-            'emergency_level' => 'nullable|in:LOW,MEDIUM,HIGH,CRITICAL'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
         try {
-            $report = new DisasterReport();
-            $report->title = $request->title;
-            $report->description = $request->description;
-            $report->disaster_type = $request->disaster_type;
-            $report->severity_level = $request->severity_level;
-            $report->latitude = $request->latitude;
-            $report->longitude = $request->longitude;
-            $report->location_name = $request->location_name;
-            $report->address = $request->address;
-            $report->estimated_affected = $request->estimated_affected;
-            $report->weather_condition = $request->weather_condition;
-            $report->incident_timestamp = $request->incident_timestamp;
-            $report->reported_by = auth()->id();
-            $report->status = 'PENDING';
+            // Sanitize input data
+            $sanitizedData = $this->crossValidator->sanitizeInput($request->all());
             
-            // Add web-specific metadata
-            $metadata = [
-                'source' => 'web_dashboard',
-                'submission_platform' => 'web',
-                'reporter_contact' => $request->reporter_contact,
-                'emergency_level' => $request->emergency_level ?? $request->severity_level,
-                'submission_time' => now()->toISOString(),
-                'user_agent' => $request->header('User-Agent')
-            ];
+            // Validate web report submission
+            $validatedData = $this->crossValidator->validateWebReport($sanitizedData);
             
-            $report->metadata = $metadata;
-            $report->save();
+            // Map web data to unified format
+            $unifiedData = $this->dataMapper->mapWebReportToUnified($validatedData);
+            
+            // Create the report
+            $report = DisasterReport::create($unifiedData);
 
             // Handle image URLs for web submissions
-            if ($request->has('images') && is_array($request->images)) {
-                foreach ($request->images as $imageUrl) {
-                    if (filter_var($imageUrl, FILTER_VALIDATE_URL)) {
-                        ReportImage::create([
-                            'disaster_report_id' => $report->id,
-                            'image_path' => $imageUrl,
-                            'is_primary' => false,
-                            'uploaded_by' => auth()->id()
-                        ]);
-                    }
+            if (isset($validatedData['images']) && is_array($validatedData['images'])) {
+                foreach ($validatedData['images'] as $imageUrl) {
+                    ReportImage::create([
+                        'disaster_report_id' => $report->id,
+                        'image_path' => $imageUrl,
+                        'is_primary' => false,
+                        'uploaded_by' => auth()->id()
+                    ]);
                 }
             }
 
+            // Load relationships and format response
             $report->load(['reporter', 'images']);
+            $responseData = $this->dataMapper->mapUnifiedToWebResponse($report);
 
             return response()->json([
-                'success' => true,
+                'status' => 'success',
                 'message' => 'Disaster report submitted successfully from web dashboard',
-                'data' => $report
-            ], 201);
+                'data' => $responseData
+            ], Response::HTTP_CREATED);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
+                'status' => 'error',
                 'message' => 'Failed to submit disaster report',
                 'error' => $e->getMessage()
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Get disaster reports formatted for admin web dashboard
+     * Enhanced with cross-platform data mapping
      */
     public function adminView(Request $request)
     {
-        $query = DisasterReport::with(['reporter:id,name,email,phone', 'images'])
-            ->select('*');
+        try {
+            // Validate search filters
+            $filters = $this->crossValidator->validateSearchFilters($request->all(), 'reports');
+            
+            $query = DisasterReport::with(['reporter:id,name,email,phone', 'images'])
+                ->select('*');
 
-        // Admin-specific filters
-        if ($request->has('status_filter')) {
-            $statuses = explode(',', $request->status_filter);
-            $query->whereIn('status', $statuses);
-        }
+            // Apply validated filters
+            if (isset($filters['status_filter'])) {
+                $statuses = explode(',', $filters['status_filter']);
+                $query->whereIn('status', $statuses);
+            }
 
-        if ($request->has('severity_filter')) {
-            $severities = explode(',', $request->severity_filter);
-            $query->whereIn('severity_level', $severities);
-        }
+            if (isset($filters['severity_filter'])) {
+                $severities = explode(',', $filters['severity_filter']);
+                $query->whereIn('severity_level', $severities);
+            }
 
-        if ($request->has('date_from')) {
-            $query->whereDate('incident_timestamp', '>=', $request->date_from);
-        }
+            if (isset($filters['disaster_type_filter'])) {
+                $types = explode(',', $filters['disaster_type_filter']);
+                $query->whereIn('disaster_type', $types);
+            }
 
-        if ($request->has('date_to')) {
-            $query->whereDate('incident_timestamp', '<=', $request->date_to);
-        }
+            if (isset($filters['date_from'])) {
+                $query->whereDate('incident_timestamp', '>=', $filters['date_from']);
+            }
 
-        if ($request->has('search')) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('title', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('location_name', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('disaster_type', 'LIKE', "%{$searchTerm}%");
+            if (isset($filters['date_to'])) {
+                $query->whereDate('incident_timestamp', '<=', $filters['date_to']);
+            }
+
+            if (isset($filters['search'])) {
+                $searchTerm = $filters['search'];
+                $query->where(function ($q) use ($searchTerm) {
+                    $q->where('title', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('location_name', 'LIKE', "%{$searchTerm}%")
+                      ->orWhere('disaster_type', 'LIKE', "%{$searchTerm}%");
+                });
+            }
+
+            // Location radius filtering
+            if (isset($filters['location_radius']) && isset($filters['center_lat']) && isset($filters['center_lng'])) {
+                $radius = $filters['location_radius'];
+                $centerLat = $filters['center_lat'];
+                $centerLng = $filters['center_lng'];
+                
+                $query->whereRaw("
+                    (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * 
+                    cos(radians(longitude) - radians(?)) + sin(radians(?)) * 
+                    sin(radians(latitude)))) <= ?
+                ", [$centerLat, $centerLng, $centerLat, $radius]);
+            }
+
+            // Sorting
+            $sortBy = $filters['sort_by'] ?? 'incident_timestamp';
+            $sortOrder = $filters['sort_order'] ?? 'desc';
+            $query->orderBy($sortBy, $sortOrder);
+
+            // Pagination
+            $perPage = $filters['per_page'] ?? 20;
+            $reports = $query->paginate($perPage);
+
+            // Map reports to web dashboard format
+            $mappedReports = $reports->getCollection()->map(function ($report) {
+                return $this->dataMapper->mapUnifiedToWebResponse($report);
             });
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Admin dashboard data retrieved successfully',
+                'data' => [
+                    'reports' => $mappedReports,
+                    'pagination' => [
+                        'current_page' => $reports->currentPage(),
+                        'total_pages' => $reports->lastPage(),
+                        'total_reports' => $reports->total(),
+                        'per_page' => $reports->perPage(),
+                        'has_next_page' => $reports->hasMorePages(),
+                        'has_previous_page' => $reports->currentPage() > 1,
+                    ],
+                    'summary' => $this->getAdminSummary(),
+                    'filters_applied' => $filters
+                ]
+            ], Response::HTTP_OK);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid filter parameters',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve admin dashboard data',
+                'error' => $e->getMessage()
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        // Sorting
-        $sortBy = $request->get('sort_by', 'incident_timestamp');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $query->orderBy($sortBy, $sortOrder);
-
-        // Pagination
-        $perPage = $request->get('per_page', 20);
-        $reports = $query->paginate($perPage);
-
-        // Add computed fields for web dashboard
-        $reports->getCollection()->transform(function ($report) {
-            $report->time_since_incident = $report->incident_timestamp->diffForHumans();
-            $report->reporter_info = [
-                'name' => $report->reporter->name ?? 'Unknown',
-                'email' => $report->reporter->email ?? 'N/A',
-                'phone' => $report->reporter->phone ?? 'N/A'
-            ];
-            $report->image_count = $report->images->count();
-            $report->needs_attention = in_array($report->status, ['PENDING', 'CRITICAL']) || 
-                                     in_array($report->severity_level, ['HIGH', 'CRITICAL']);
-            return $report;
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Admin dashboard data retrieved successfully',
-            'data' => [
-                'reports' => $reports->items(),
-                'pagination' => [
-                    'current_page' => $reports->currentPage(),
-                    'total_pages' => $reports->lastPage(),
-                    'total_reports' => $reports->total(),
-                    'per_page' => $reports->perPage(),
-                    'has_next_page' => $reports->hasMorePages(),
-                    'has_previous_page' => $reports->currentPage() > 1,
-                ],
-                'summary' => $this->getAdminSummary()
-            ]
-        ]);
     }
 
     /**
@@ -504,35 +511,25 @@ class DisasterReportController extends Controller
 
     /**
      * Verify a disaster report (admin action)
+     * Enhanced with cross-platform validation
      */
     public function verify(Request $request, $id)
     {
         try {
             $report = DisasterReport::findOrFail($id);
             
-            $validator = Validator::make($request->all(), [
-                'verification_notes' => 'nullable|string|max:1000',
-                'severity_adjustment' => 'nullable|in:LOW,MEDIUM,HIGH,CRITICAL',
-                'assign_team' => 'nullable|string|max:255'
-            ]);
-
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validation failed',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+            // Validate admin action data
+            $validatedData = $this->crossValidator->validateAdminAction($request->all(), 'verify_report');
 
             // Update report status and verification info
             $report->status = 'VERIFIED';
             
-            if ($request->has('severity_adjustment')) {
-                $report->severity_level = $request->severity_adjustment;
+            if (isset($validatedData['severity_adjustment'])) {
+                $report->severity_level = $validatedData['severity_adjustment'];
             }
 
-            if ($request->has('assign_team')) {
-                $report->assigned_to = $request->assign_team;
+            if (isset($validatedData['assign_team'])) {
+                $report->assigned_to = $validatedData['assign_team'];
             }
 
             // Add verification metadata
@@ -540,26 +537,48 @@ class DisasterReportController extends Controller
             $metadata['verification'] = [
                 'verified_by' => auth()->id(),
                 'verified_at' => now()->toISOString(),
-                'verification_notes' => $request->verification_notes,
+                'verification_notes' => $validatedData['verification_notes'] ?? null,
                 'original_severity' => $report->getOriginal('severity_level'),
-                'adjusted_severity' => $request->severity_adjustment
+                'adjusted_severity' => $validatedData['severity_adjustment'] ?? null,
+                'priority_level' => $validatedData['priority_level'] ?? null,
+                'admin_user' => [
+                    'id' => auth()->id(),
+                    'name' => auth()->user()->name,
+                    'email' => auth()->user()->email
+                ]
             ];
             $report->metadata = $metadata;
             
             $report->save();
 
+            // Format response using data mapper
+            $responseData = $this->dataMapper->mapUnifiedToWebResponse($report->load(['reporter', 'images']));
+
             return response()->json([
-                'success' => true,
+                'status' => 'success',
                 'message' => 'Disaster report verified successfully',
-                'data' => $report->load(['reporter', 'images'])
-            ]);
+                'data' => $responseData
+            ], Response::HTTP_OK);
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Disaster report not found'
+            ], Response::HTTP_NOT_FOUND);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
 
         } catch (\Exception $e) {
             return response()->json([
-                'success' => false,
+                'status' => 'error',
                 'message' => 'Failed to verify disaster report',
                 'error' => $e->getMessage()
-            ], 500);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
