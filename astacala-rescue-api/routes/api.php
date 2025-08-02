@@ -370,3 +370,83 @@ Route::post('/test-notifications', function () {
         ], 500);
     }
 });
+
+// WebSocket events test endpoint
+Route::post('/test-websocket-events', function () {
+    try {
+        $results = [];
+
+        // Test 1: Broadcast Disaster Report Submitted Event
+        $testReportData = [
+            'id' => 999,
+            'type' => 'Banjir',
+            'location' => 'Jakarta Pusat',
+            'reporter_name' => 'Test Reporter',
+            'latitude' => -6.2088,
+            'longitude' => 106.8456,
+            'timestamp' => now()->toISOString(),
+            'platform' => 'web',
+            'test_event' => true
+        ];
+
+        event(new \App\Events\DisasterReportSubmitted($testReportData));
+        $results[] = 'DisasterReportSubmitted event broadcasted';
+
+        // Test 2: Broadcast Report Verified Event
+        $testVerificationData = [
+            'report_id' => 999,
+            'verified_by' => 'Test Admin',
+            'verification_status' => 'VERIFIED',
+            'timestamp' => now()->toISOString(),
+            'platform' => 'web',
+            'test_event' => true
+        ];
+
+        event(new \App\Events\ReportVerified($testVerificationData));
+        $results[] = 'ReportVerified event broadcasted';
+
+        // Test 3: Broadcast Admin Notification Event
+        $testAdminType = 'HIGH_PRIORITY_REPORT';
+        $testAdminTitle = 'High Priority Alert';
+        $testAdminMessage = 'Test high priority disaster report submitted';
+        $testAdminData = [
+            'report_data' => $testReportData,
+            'timestamp' => now()->toISOString(),
+            'platform' => 'web',
+            'test_event' => true
+        ];
+
+        event(new \App\Events\AdminNotification($testAdminType, $testAdminTitle, $testAdminMessage, $testAdminData));
+        $results[] = 'AdminNotification event broadcasted';
+
+        return response()->json([
+            'success' => true,
+            'message' => 'WebSocket test events broadcasted successfully',
+            'events_sent' => count($results),
+            'results' => $results,
+            'websocket_server' => 'Laravel Reverb on port 8080',
+            'channels' => [
+                'general-notifications' => 'All general events',
+                'admin-notifications' => 'Admin-specific events'
+            ],
+            'test_data' => [
+                'disaster_report' => $testReportData,
+                'verification' => $testVerificationData,
+                'admin_notification' => [
+                    'type' => $testAdminType,
+                    'title' => $testAdminTitle,
+                    'message' => $testAdminMessage,
+                    'data' => $testAdminData
+                ]
+            ],
+            'timestamp' => now()->toISOString()
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'WebSocket test failed',
+            'error' => $e->getMessage(),
+            'trace' => config('app.debug') ? $e->getTraceAsString() : 'Enable debug mode to see trace'
+        ], 500);
+    }
+});

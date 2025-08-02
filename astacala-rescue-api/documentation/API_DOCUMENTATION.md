@@ -1,3 +1,5 @@
+//OBSOLETE: This file is no longer used. Please refer to the new API documentation at `astacala-rescue-api/documentation/API_DOCUMENTATION_UPDATED.md`.
+
 # Astacala Rescue API Documentation
 
 ## Overview

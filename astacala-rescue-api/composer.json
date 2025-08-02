@@ -8,6 +8,7 @@
         "php": "^8.2",
         "intervention/image": "^3.11",
         "laravel/framework": "^11.9",
+        "laravel/reverb": "@beta",
         "laravel/sanctum": "^4.1",
         "laravel/tinker": "^2.9"
     },

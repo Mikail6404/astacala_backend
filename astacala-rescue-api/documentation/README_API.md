@@ -5,11 +5,12 @@ A comprehensive cross-platform RESTful API for disaster reporting and management
 ## 🚀 Quick Start
 
 ### Prerequisites
-- PHP 8.1+
+- PHP 8.2+
 - Composer
 - MySQL/PostgreSQL
-- Laravel 10.x
+- Laravel 11.x
 - GD Extension (for image processing)
+- Laravel Reverb (for WebSocket support)
 
 ### Installation
 
