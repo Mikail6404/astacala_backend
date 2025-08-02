@@ -61,39 +61,38 @@ try {
     // Test mobile data mapping
     require_once __DIR__ . '/app/Http/Services/CrossPlatformDataMapper.php';
     $mapper = new \App\Http\Services\CrossPlatformDataMapper();
-    
+
     echo "   Testing mobile data mapping...\n";
     $mappedMobile = $mapper->mapMobileReportToUnified($mobileReportData);
-    
+
     if (isset($mappedMobile['disaster_type']) && $mappedMobile['disaster_type'] === 'EARTHQUAKE') {
         echo "   ✅ Mobile disaster type mapping: earthquake → EARTHQUAKE\n";
     } else {
         echo "   ❌ Mobile disaster type mapping failed\n";
     }
-    
+
     if (isset($mappedMobile['severity_level']) && $mappedMobile['severity_level'] === 'HIGH') {
         echo "   ✅ Mobile severity level mapping: high → HIGH\n";
     } else {
         echo "   ❌ Mobile severity level mapping failed\n";
     }
-    
+
     if (isset($mappedMobile['metadata']['source']) && $mappedMobile['metadata']['source'] === 'mobile_app') {
         echo "   ✅ Mobile metadata source correctly set\n";
     } else {
         echo "   ❌ Mobile metadata source not set correctly\n";
     }
-    
+
     echo "   Testing web data mapping...\n";
     $mappedWeb = $mapper->mapWebReportToUnified($webReportData);
-    
+
     if (isset($mappedWeb['metadata']['source']) && $mappedWeb['metadata']['source'] === 'web_dashboard') {
         echo "   ✅ Web metadata source correctly set\n";
     } else {
         echo "   ❌ Web metadata source not set correctly\n";
     }
-    
+
     echo "   ✅ Data mapping service working correctly\n";
-    
 } catch (Exception $e) {
     echo "   ❌ Data mapping service failed: " . $e->getMessage() . "\n";
 }
@@ -103,9 +102,9 @@ echo "\n2. Testing Cross-Platform Validation Service...\n";
 try {
     require_once __DIR__ . '/app/Http/Services/CrossPlatformValidator.php';
     $validator = new \App\Http\Services\CrossPlatformValidator();
-    
+
     echo "   Testing mobile data validation...\n";
-    
+
     // Test valid mobile data
     try {
         $validatedMobile = $validator->validateMobileReport($mobileReportData);
@@ -113,21 +112,21 @@ try {
     } catch (\Illuminate\Validation\ValidationException $e) {
         echo "   ❌ Valid mobile data failed validation: " . json_encode($e->errors()) . "\n";
     }
-    
+
     // Test invalid mobile data
     $invalidMobileData = $mobileReportData;
     $invalidMobileData['latitude'] = 200; // Invalid latitude
     $invalidMobileData['title'] = 'short'; // Too short title
-    
+
     try {
         $validator->validateMobileReport($invalidMobileData);
         echo "   ❌ Invalid mobile data should fail validation\n";
     } catch (\Illuminate\Validation\ValidationException $e) {
         echo "   ✅ Invalid mobile data correctly rejected\n";
     }
-    
+
     echo "   Testing web data validation...\n";
-    
+
     // Test valid web data
     try {
         $validatedWeb = $validator->validateWebReport($webReportData);
@@ -135,9 +134,8 @@ try {
     } catch (\Illuminate\Validation\ValidationException $e) {
         echo "   ❌ Valid web data failed validation: " . json_encode($e->errors()) . "\n";
     }
-    
+
     echo "   ✅ Validation service working correctly\n";
-    
 } catch (Exception $e) {
     echo "   ❌ Validation service failed: " . $e->getMessage() . "\n";
 }
@@ -155,14 +153,13 @@ try {
         'v1/users/admin-list' => 'GET',
         'v1/notifications/broadcast' => 'POST'
     ];
-    
+
     echo "   Checking API route registration...\n";
     foreach ($routes as $route => $method) {
         echo "   ✅ Route: $method /api/$route\n";
     }
-    
+
     echo "   ✅ All enhanced API routes properly structured\n";
-    
 } catch (Exception $e) {
     echo "   ❌ API route structure test failed: " . $e->getMessage() . "\n";
 }
@@ -173,16 +170,15 @@ try {
     // Check if new tables exist
     $requiredTables = [
         'publications',
-        'publication_comments', 
+        'publication_comments',
         'publication_disaster_reports'
     ];
-    
+
     foreach ($requiredTables as $table) {
         echo "   ✅ Table '$table' schema ready\n";
     }
-    
+
     echo "   ✅ Database schema extensions completed\n";
-    
 } catch (Exception $e) {
     echo "   ❌ Database schema test failed: " . $e->getMessage() . "\n";
 }
@@ -211,9 +207,9 @@ try {
         'images' => collect([]),
         'metadata' => []
     ];
-    
+
     $mapper = new \App\Http\Services\CrossPlatformDataMapper();
-    
+
     // Test mobile response format
     $mobileResponse = $mapper->mapUnifiedToMobileResponse($mockReport);
     if (isset($mobileResponse['id']) && isset($mobileResponse['disaster_type'])) {
@@ -221,7 +217,7 @@ try {
     } else {
         echo "   ❌ Mobile response format incorrect\n";
     }
-    
+
     // Test web response format
     $webResponse = $mapper->mapUnifiedToWebResponse($mockReport);
     if (isset($webResponse['id']) && isset($webResponse['disaster_type']['label'])) {
@@ -229,9 +225,8 @@ try {
     } else {
         echo "   ❌ Web response format incorrect\n";
     }
-    
+
     echo "   ✅ Cross-platform response formatting working\n";
-    
 } catch (Exception $e) {
     echo "   ❌ Response formatting test failed: " . $e->getMessage() . "\n";
 }
@@ -240,30 +235,29 @@ try {
 echo "\n6. Testing Security & Validation Features...\n";
 try {
     $validator = new \App\Http\Services\CrossPlatformValidator();
-    
+
     // Test input sanitization
     $maliciousData = [
         'title' => '<script>alert("xss")</script>Test Title',
         'description' => 'Normal description with <b>bold</b> text',
         'location_name' => 'Location & "Special" Characters'
     ];
-    
+
     $sanitized = $validator->sanitizeInput($maliciousData);
-    
+
     if (!strpos($sanitized['title'], '<script>')) {
         echo "   ✅ XSS protection working - scripts removed\n";
     } else {
         echo "   ❌ XSS protection failed\n";
     }
-    
+
     if (!strpos($sanitized['description'], '<b>')) {
         echo "   ✅ HTML tags stripped from content\n";
     } else {
         echo "   ❌ HTML tag stripping failed\n";
     }
-    
+
     echo "   ✅ Security features working correctly\n";
-    
 } catch (Exception $e) {
     echo "   ❌ Security test failed: " . $e->getMessage() . "\n";
 }

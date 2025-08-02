@@ -36,8 +36,8 @@ class PublicationController extends Controller
                 $searchTerm = $request->input('search');
                 $query->where(function ($q) use ($searchTerm) {
                     $q->where('title', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('content', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('tags', 'LIKE', "%{$searchTerm}%");
+                        ->orWhere('content', 'LIKE', "%{$searchTerm}%")
+                        ->orWhere('tags', 'LIKE', "%{$searchTerm}%");
                 });
             }
 
@@ -56,7 +56,6 @@ class PublicationController extends Controller
                     'last_page' => $publications->lastPage(),
                 ]
             ], Response::HTTP_OK);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -87,13 +86,11 @@ class PublicationController extends Controller
                 'message' => 'Publication retrieved successfully',
                 'data' => $publication
             ], Response::HTTP_OK);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Publication not found'
             ], Response::HTTP_NOT_FOUND);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -142,7 +139,7 @@ class PublicationController extends Controller
             $publication->status = $request->input('status', 'draft');
             $publication->meta_description = $request->input('meta_description');
             $publication->author_id = Auth::id();
-            
+
             // Set publish date
             if ($request->input('publish_at')) {
                 $publication->published_at = Carbon::parse($request->input('publish_at'));
@@ -162,7 +159,6 @@ class PublicationController extends Controller
                 'message' => 'Publication created successfully',
                 'data' => $publication->load(['author:id,name,email', 'reports:id,title,disaster_type'])
             ], Response::HTTP_CREATED);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -211,7 +207,7 @@ class PublicationController extends Controller
             if ($request->has('tags')) $publication->tags = $request->input('tags');
             if ($request->has('featured_image')) $publication->featured_image = $request->input('featured_image');
             if ($request->has('meta_description')) $publication->meta_description = $request->input('meta_description');
-            
+
             // Handle status change
             if ($request->has('status')) {
                 $oldStatus = $publication->status;
@@ -220,7 +216,7 @@ class PublicationController extends Controller
 
                 // Set published_at when publishing
                 if ($oldStatus !== 'published' && $newStatus === 'published') {
-                    $publication->published_at = $request->input('publish_at') 
+                    $publication->published_at = $request->input('publish_at')
                         ? Carbon::parse($request->input('publish_at'))
                         : now();
                 }
@@ -239,13 +235,11 @@ class PublicationController extends Controller
                 'message' => 'Publication updated successfully',
                 'data' => $publication->load(['author:id,name,email', 'reports:id,title,disaster_type'])
             ], Response::HTTP_OK);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Publication not found'
             ], Response::HTTP_NOT_FOUND);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -263,7 +257,7 @@ class PublicationController extends Controller
     {
         try {
             $publication = Publication::findOrFail($id);
-            
+
             // Soft delete or archive instead of permanent deletion
             $publication->status = 'archived';
             $publication->archived_at = now();
@@ -274,13 +268,11 @@ class PublicationController extends Controller
                 'status' => 'success',
                 'message' => 'Publication archived successfully'
             ], Response::HTTP_OK);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Publication not found'
             ], Response::HTTP_NOT_FOUND);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -319,7 +311,7 @@ class PublicationController extends Controller
             }
 
             $publication->status = 'published';
-            $publication->published_at = $request->input('publish_at') 
+            $publication->published_at = $request->input('publish_at')
                 ? Carbon::parse($request->input('publish_at'))
                 : now();
             $publication->published_by = Auth::id();
@@ -330,13 +322,11 @@ class PublicationController extends Controller
                 'message' => 'Publication published successfully',
                 'data' => $publication->load(['author:id,name,email', 'reports:id,title,disaster_type'])
             ], Response::HTTP_OK);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Publication not found'
             ], Response::HTTP_NOT_FOUND);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',

@@ -29,6 +29,7 @@ class User extends Authenticatable
         'emergency_contacts',
         'is_active',
         'email_verified',
+        'fcm_token',
     ];
 
     /**
@@ -79,6 +80,7 @@ class User extends Authenticatable
      */
     public function notifications()
     {
-        return $this->hasMany(Notification::class, 'recipient_id');
+        return $this->hasMany(Notification::class, 'user_id')
+            ->orWhere('recipient_id', $this->id);
     }
 }

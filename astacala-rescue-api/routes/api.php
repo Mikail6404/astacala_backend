@@ -7,6 +7,7 @@ use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\UserController;
 use App\Http\Controllers\API\AdminController;
 use App\Http\Controllers\API\PublicationController;
+use App\Http\Controllers\API\CrossPlatformFileUploadController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -35,7 +36,7 @@ Route::get('/health', function () {
 
 // API Version 1 Routes
 Route::prefix('v1')->group(function () {
-    
+
     // Authentication routes (public)
     Route::prefix('auth')->group(function () {
         Route::post('/register', [AuthController::class, 'register']);
@@ -63,14 +64,14 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}', [DisasterReportController::class, 'show']);
             Route::put('/{id}', [DisasterReportController::class, 'update']);
             Route::delete('/{id}', [DisasterReportController::class, 'destroy']);
-            
+
             // Web-compatible endpoints
             Route::post('/web-submit', [DisasterReportController::class, 'webSubmit']);
             Route::get('/admin-view', [DisasterReportController::class, 'adminView']);
             Route::get('/pending', [DisasterReportController::class, 'pending']);
             Route::post('/{id}/verify', [DisasterReportController::class, 'verify']);
             Route::post('/{id}/publish', [DisasterReportController::class, 'publish']);
-            
+
             // User-specific reports
             Route::get('/my-reports', [DisasterReportController::class, 'userReports']);
             Route::get('/my-statistics', [DisasterReportController::class, 'userStatistics']);
@@ -83,7 +84,7 @@ Route::prefix('v1')->group(function () {
             Route::post('/profile/avatar', [UserController::class, 'uploadAvatar']);
             Route::get('/reports', [DisasterReportController::class, 'userReports']);
             Route::get('/{id}', [UserController::class, 'getUserById']);
-            
+
             // Admin user management
             Route::middleware('role:admin,super_admin')->group(function () {
                 Route::get('/admin-list', [UserController::class, 'adminList']);
@@ -98,7 +99,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('publications')->group(function () {
             Route::get('/', [PublicationController::class, 'index']);
             Route::get('/{id}', [PublicationController::class, 'show']);
-            
+
             // Admin operations
             Route::middleware('role:admin,super_admin')->group(function () {
                 Route::post('/', [PublicationController::class, 'store']);
@@ -108,17 +109,35 @@ Route::prefix('v1')->group(function () {
             });
         });
 
-        // Notifications (Enhanced)
+        // Notifications (Enhanced Cross-Platform)
         Route::prefix('notifications')->group(function () {
             Route::get('/', [NotificationController::class, 'index']);
             Route::post('/mark-read', [NotificationController::class, 'markAsRead']);
-            Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead']);
+            Route::get('/unread-count', [NotificationController::class, 'getUnreadCount']);
             Route::delete('/{id}', [NotificationController::class, 'destroy']);
-            Route::get('/unread-count', [NotificationController::class, 'unreadCount']);
-            
+            Route::post('/fcm-token', [NotificationController::class, 'updateFcmToken']);
+
             // Admin notification broadcasting
             Route::middleware('role:admin,super_admin')->group(function () {
-                Route::post('/broadcast', [NotificationController::class, 'broadcast']);
+                Route::post('/broadcast', [NotificationController::class, 'sendUrgentNotification']);
+            });
+        });
+
+        // File Upload System (Cross-Platform)
+        Route::prefix('files')->group(function () {
+            // Image uploads for disaster reports
+            Route::post('/disasters/{reportId}/images', [CrossPlatformFileUploadController::class, 'uploadDisasterImages']);
+            Route::delete('/disasters/{reportId}/images/{imageId}', [CrossPlatformFileUploadController::class, 'deleteImage']);
+
+            // Document uploads for disaster reports
+            Route::post('/disasters/{reportId}/documents', [CrossPlatformFileUploadController::class, 'uploadDocument']);
+
+            // User avatar upload
+            Route::post('/avatar', [CrossPlatformFileUploadController::class, 'uploadUserAvatar']);
+
+            // Storage statistics (admin only)
+            Route::middleware('role:admin,super_admin')->group(function () {
+                Route::get('/storage/statistics', [CrossPlatformFileUploadController::class, 'getStorageStatistics']);
             });
         });
 
@@ -126,7 +145,7 @@ Route::prefix('v1')->group(function () {
         Route::prefix('forum')->group(function () {
             Route::get('/', [ForumController::class, 'index']);
             Route::post('/', [ForumController::class, 'store']);
-            
+
             // Report-specific discussions
             Route::prefix('reports/{reportId}')->group(function () {
                 Route::get('/messages', [ForumController::class, 'reportMessages']);
@@ -204,4 +223,150 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{message_id}', [ForumController::class, 'destroy']);
         Route::post('/mark-read', [ForumController::class, 'markAsRead']);
     });
+});
+
+// ========================================
+// GIBRAN WEB APP COMPATIBILITY ROUTES
+// ========================================
+use App\Http\Controllers\API\GibranWebCompatibilityController;
+
+// Public routes for Gibran's web app
+Route::prefix('gibran')->group(function () {
+
+    // Public disaster news endpoint (maintains Gibran's existing API)
+    Route::get('/berita-bencana', [GibranWebCompatibilityController::class, 'getBeritaBencana']);
+
+    // Authentication for Gibran's admin panel
+    Route::post('/auth/login', [GibranWebCompatibilityController::class, 'webAuthLogin']);
+
+    // Protected routes for Gibran's admin dashboard
+    Route::middleware('auth:sanctum')->group(function () {
+
+        // Disaster report management (pelaporans)
+        Route::prefix('pelaporans')->group(function () {
+            Route::get('/', [GibranWebCompatibilityController::class, 'getPelaporans']);
+            Route::post('/', [GibranWebCompatibilityController::class, 'submitPelaporan']);
+            Route::post('/{id}/verify', [GibranWebCompatibilityController::class, 'verifyPelaporan']);
+        });
+
+        // Dashboard statistics for admin panel
+        Route::get('/dashboard/statistics', [GibranWebCompatibilityController::class, 'getDashboardStatistics']);
+
+        // Notification management for web dashboard
+        Route::prefix('notifikasi')->group(function () {
+            Route::get('/{pengguna_id}', [GibranWebCompatibilityController::class, 'getUserNotifications']);
+            Route::post('/send', [GibranWebCompatibilityController::class, 'sendNotification']);
+        });
+    });
+});
+
+// Legacy mobile compatibility (maintain existing mobile endpoints)
+Route::prefix('pelaporans')->group(function () {
+    Route::post('/', [GibranWebCompatibilityController::class, 'submitPelaporan'])->middleware('auth:sanctum');
+});
+
+// Test notification endpoint
+Route::post('/test-notifications', function () {
+
+    try {
+        $notificationService = app(App\Services\CrossPlatformNotificationService::class);
+
+        // Test 1: Create a test volunteer user
+        $volunteer = App\Models\User::firstOrCreate(
+            ['email' => 'test.volunteer@example.com'],
+            [
+                'name' => 'Test Volunteer',
+                'password' => bcrypt('password'),
+                'role' => 'VOLUNTEER',
+                'phone' => '1234567890',
+                'is_active' => true,
+                'email_verified_at' => now()
+            ]
+        );
+
+        // Test 2: Create a test admin user
+        $admin = App\Models\User::firstOrCreate(
+            ['email' => 'test.admin@example.com'],
+            [
+                'name' => 'Test Admin',
+                'password' => bcrypt('password'),
+                'role' => 'ADMIN',
+                'phone' => '1234567891',
+                'is_active' => true,
+                'email_verified_at' => now()
+            ]
+        );
+
+        // Test 3: Create a test disaster report
+        $report = App\Models\DisasterReport::create([
+            'title' => 'Test Notification Report',
+            'description' => 'This is a test report for notification system verification',
+            'disaster_type' => 'FLOOD',
+            'severity_level' => 'MEDIUM',
+            'latitude' => -6.2088,
+            'longitude' => 106.8456,
+            'location_name' => 'Jakarta, Indonesia',
+            'estimated_affected' => 100,
+            'incident_timestamp' => now(),
+            'reported_by' => $volunteer->id,
+            'status' => 'PENDING'
+        ]);
+
+        // Test 4: Send new report notification to admins
+        $notificationService->notifyNewReportToAdmins($report);
+
+        // Test 5: Simulate report verification
+        $report->update(['status' => 'VERIFIED']);
+        $notificationService->notifyReportVerified($report);
+
+        // Test 6: Send urgent notification
+        $notificationService->sendUrgentNotification(
+            'System Test Alert',
+            'This is a test of the urgent notification system.',
+            ['priority' => 'HIGH', 'test' => true]
+        );
+
+        // Test 7: Get notifications for volunteer (mobile)
+        $volunteerNotifications = $notificationService->getPlatformNotifications($volunteer, 'mobile');
+        $volunteerUnreadCount = $notificationService->getUnreadCount($volunteer, 'mobile');
+
+        // Test 8: Get notifications for admin (web)
+        $adminNotifications = $notificationService->getPlatformNotifications($admin, 'web');
+        $adminUnreadCount = $notificationService->getUnreadCount($admin, 'web');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cross-platform notification system test completed successfully',
+            'test_results' => [
+                'volunteer_created' => $volunteer->id,
+                'admin_created' => $admin->id,
+                'test_report_created' => $report->id,
+                'volunteer_notifications' => [
+                    'count' => count($volunteerNotifications),
+                    'unread_count' => $volunteerUnreadCount,
+                    'platform' => 'mobile',
+                    'notifications' => array_slice($volunteerNotifications, 0, 3) // Show first 3
+                ],
+                'admin_notifications' => [
+                    'count' => count($adminNotifications),
+                    'unread_count' => $adminUnreadCount,
+                    'platform' => 'web',
+                    'notifications' => array_slice($adminNotifications, 0, 3) // Show first 3
+                ]
+            ],
+            'next_steps' => [
+                'mobile_app' => 'Use GET /api/v1/notifications?platform=mobile to fetch mobile notifications',
+                'web_dashboard' => 'Use GET /api/v1/notifications?platform=web to fetch web notifications',
+                'mark_read' => 'Use POST /api/v1/notifications/mark-read with notification IDs',
+                'fcm_token' => 'Use POST /api/v1/notifications/fcm-token to register push notification token'
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Notification system test failed',
+            'error' => $e->getMessage(),
+            'trace' => config('app.debug') ? $e->getTraceAsString() : 'Enable debug mode to see trace'
+        ], 500);
+    }
 });

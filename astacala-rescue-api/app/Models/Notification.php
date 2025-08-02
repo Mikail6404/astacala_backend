@@ -10,7 +10,8 @@ class Notification extends Model
     use HasFactory;
 
     protected $fillable = [
-        'recipient_id',
+        'user_id',
+        'recipient_id', // Keep for backward compatibility
         'title',
         'message',
         'type',
@@ -19,6 +20,7 @@ class Notification extends Model
         'action_url',
         'is_read',
         'data',
+        'read_at',
     ];
 
     protected function casts(): array
@@ -26,6 +28,7 @@ class Notification extends Model
         return [
             'data' => 'array',
             'is_read' => 'boolean',
+            'read_at' => 'datetime',
         ];
     }
 
@@ -35,6 +38,14 @@ class Notification extends Model
     public function recipient()
     {
         return $this->belongsTo(User::class, 'recipient_id');
+    }
+
+    /**
+     * Get the user who should receive this notification (new method).
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     /**

@@ -24,6 +24,9 @@ class DisasterReport extends Model
         'team_name',
         'reported_by',
         'assigned_to',
+        'verified_by_admin_id',
+        'verification_notes',
+        'verified_at',
         'metadata',
         'incident_timestamp',
     ];
@@ -56,11 +59,19 @@ class DisasterReport extends Model
     }
 
     /**
+     * Get the admin who verified this disaster report.
+     */
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by_admin_id');
+    }
+
+    /**
      * Get the images for this disaster report.
      */
     public function images()
     {
-        return $this->hasMany(ReportImage::class, 'report_id');
+        return $this->hasMany(ReportImage::class, 'disaster_report_id');
     }
 
     /**

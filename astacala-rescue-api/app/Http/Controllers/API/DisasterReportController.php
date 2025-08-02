@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Services\CrossPlatformDataMapper;
 use App\Http\Services\CrossPlatformValidator;
+use App\Services\CrossPlatformNotificationService;
 use App\Models\DisasterReport;
 use App\Models\ReportImage;
 use Illuminate\Http\Request;
@@ -17,11 +18,16 @@ class DisasterReportController extends Controller
 {
     protected $dataMapper;
     protected $crossValidator;
+    protected $notificationService;
 
-    public function __construct(CrossPlatformDataMapper $dataMapper, CrossPlatformValidator $crossValidator)
-    {
+    public function __construct(
+        CrossPlatformDataMapper $dataMapper,
+        CrossPlatformValidator $crossValidator,
+        CrossPlatformNotificationService $notificationService
+    ) {
         $this->dataMapper = $dataMapper;
         $this->crossValidator = $crossValidator;
+        $this->notificationService = $notificationService;
     }
 
     /**
@@ -133,6 +139,9 @@ class DisasterReportController extends Controller
             }
         }
 
+        // Send notification to admins about new report
+        $this->notificationService->notifyNewReportToAdmins($report);
+
         return response()->json([
             'success' => true,
             'message' => 'Report submitted successfully',
@@ -194,7 +203,13 @@ class DisasterReportController extends Controller
             ], 422);
         }
 
+        $oldStatus = $report->status;
         $report->update($request->only(['status', 'assigned_to']));
+
+        // Send notification when status changes to verified
+        if ($request->has('status') && $request->status === 'VERIFIED' && $oldStatus !== 'VERIFIED') {
+            $this->notificationService->notifyReportVerified($report);
+        }
 
         return response()->json([
             'success' => true,
@@ -318,13 +333,13 @@ class DisasterReportController extends Controller
         try {
             // Sanitize input data
             $sanitizedData = $this->crossValidator->sanitizeInput($request->all());
-            
+
             // Validate web report submission
             $validatedData = $this->crossValidator->validateWebReport($sanitizedData);
-            
+
             // Map web data to unified format
             $unifiedData = $this->dataMapper->mapWebReportToUnified($validatedData);
-            
+
             // Create the report
             $report = DisasterReport::create($unifiedData);
 
@@ -349,14 +364,12 @@ class DisasterReportController extends Controller
                 'message' => 'Disaster report submitted successfully from web dashboard',
                 'data' => $responseData
             ], Response::HTTP_CREATED);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -375,7 +388,7 @@ class DisasterReportController extends Controller
         try {
             // Validate search filters
             $filters = $this->crossValidator->validateSearchFilters($request->all(), 'reports');
-            
+
             $query = DisasterReport::with(['reporter:id,name,email,phone', 'images'])
                 ->select('*');
 
@@ -407,9 +420,9 @@ class DisasterReportController extends Controller
                 $searchTerm = $filters['search'];
                 $query->where(function ($q) use ($searchTerm) {
                     $q->where('title', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('description', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('location_name', 'LIKE', "%{$searchTerm}%")
-                      ->orWhere('disaster_type', 'LIKE', "%{$searchTerm}%");
+                        ->orWhere('description', 'LIKE', "%{$searchTerm}%")
+                        ->orWhere('location_name', 'LIKE', "%{$searchTerm}%")
+                        ->orWhere('disaster_type', 'LIKE', "%{$searchTerm}%");
                 });
             }
 
@@ -418,7 +431,7 @@ class DisasterReportController extends Controller
                 $radius = $filters['location_radius'];
                 $centerLat = $filters['center_lat'];
                 $centerLng = $filters['center_lng'];
-                
+
                 $query->whereRaw("
                     (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * 
                     cos(radians(longitude) - radians(?)) + sin(radians(?)) * 
@@ -457,14 +470,12 @@ class DisasterReportController extends Controller
                     'filters_applied' => $filters
                 ]
             ], Response::HTTP_OK);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid filter parameters',
                 'errors' => $e->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -517,13 +528,13 @@ class DisasterReportController extends Controller
     {
         try {
             $report = DisasterReport::findOrFail($id);
-            
+
             // Validate admin action data
             $validatedData = $this->crossValidator->validateAdminAction($request->all(), 'verify_report');
 
             // Update report status and verification info
             $report->status = 'VERIFIED';
-            
+
             if (isset($validatedData['severity_adjustment'])) {
                 $report->severity_level = $validatedData['severity_adjustment'];
             }
@@ -548,7 +559,7 @@ class DisasterReportController extends Controller
                 ]
             ];
             $report->metadata = $metadata;
-            
+
             $report->save();
 
             // Format response using data mapper
@@ -559,20 +570,17 @@ class DisasterReportController extends Controller
                 'message' => 'Disaster report verified successfully',
                 'data' => $responseData
             ], Response::HTTP_OK);
-
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Disaster report not found'
             ], Response::HTTP_NOT_FOUND);
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -589,7 +597,7 @@ class DisasterReportController extends Controller
     {
         try {
             $report = DisasterReport::findOrFail($id);
-            
+
             if ($report->status !== 'VERIFIED') {
                 return response()->json([
                     'success' => false,
@@ -612,7 +620,7 @@ class DisasterReportController extends Controller
             }
 
             $report->status = 'PUBLISHED';
-            
+
             // Add publishing metadata
             $metadata = $report->metadata ?? [];
             $metadata['publication'] = [
@@ -623,7 +631,7 @@ class DisasterReportController extends Controller
                 'emergency_alert' => $request->boolean('emergency_alert', false)
             ];
             $report->metadata = $metadata;
-            
+
             $report->save();
 
             return response()->json([
@@ -631,7 +639,6 @@ class DisasterReportController extends Controller
                 'message' => 'Disaster report published successfully',
                 'data' => $report->load(['reporter', 'images'])
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -647,7 +654,8 @@ class DisasterReportController extends Controller
     public function userStatistics(Request $request)
     {
         $user = auth()->user();
-        
+        /** @var \App\Models\User $user */
+
         $stats = [
             'total_reports' => $user->disasterReports()->count(),
             'reports_by_status' => [

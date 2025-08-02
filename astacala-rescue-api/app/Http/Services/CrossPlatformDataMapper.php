@@ -173,30 +173,31 @@ class CrossPlatformDataMapper
     {
         $typeMap = [
             // Mobile variations
-            'earthquake' => 'EARTHQUAKE',
-            'flood' => 'FLOOD',
-            'fire' => 'FIRE',
-            'hurricane' => 'HURRICANE',
-            'tsunami' => 'TSUNAMI',
-            'landslide' => 'LANDSLIDE',
-            'volcano' => 'VOLCANO',
-            'drought' => 'DROUGHT',
-            'blizzard' => 'BLIZZARD',
-            'tornado' => 'TORNADO',
-            
+            'earthquake' => 'earthquake',
+            'flood' => 'flood',
+            'fire' => 'fire',
+            'hurricane' => 'hurricane',
+            'tsunami' => 'tsunami',
+            'landslide' => 'landslide',
+            'volcano' => 'volcano',
+            'drought' => 'drought',
+            'blizzard' => 'blizzard',
+            'tornado' => 'tornado',
+
             // Web variations
-            'gempa_bumi' => 'EARTHQUAKE',
-            'banjir' => 'FLOOD',
-            'kebakaran' => 'FIRE',
-            'badai' => 'HURRICANE',
-            'gunung_meletus' => 'VOLCANO',
-            'tanah_longsor' => 'LANDSLIDE',
-            'kekeringan' => 'DROUGHT',
-            'other' => 'OTHER',
-            'lainnya' => 'OTHER',
+            'gempa_bumi' => 'earthquake',
+            'gempa' => 'earthquake',
+            'banjir' => 'flood',
+            'kebakaran' => 'fire',
+            'badai' => 'hurricane',
+            'gunung_meletus' => 'volcano',
+            'tanah_longsor' => 'landslide',
+            'kekeringan' => 'drought',
+            'other' => 'other',
+            'lainnya' => 'other',
         ];
 
-        return $typeMap[strtolower($type)] ?? 'OTHER';
+        return $typeMap[strtolower($type)] ?? 'other';
     }
 
     /**
@@ -206,25 +207,25 @@ class CrossPlatformDataMapper
     {
         $severityMap = [
             // English variations
-            'low' => 'LOW',
-            'medium' => 'MEDIUM',
-            'high' => 'HIGH',
-            'critical' => 'CRITICAL',
-            
+            'low' => 'low',
+            'medium' => 'medium',
+            'high' => 'high',
+            'critical' => 'critical',
+
             // Numeric scale (1-4)
-            '1' => 'LOW',
-            '2' => 'MEDIUM',
-            '3' => 'HIGH',
-            '4' => 'CRITICAL',
-            
+            '1' => 'low',
+            '2' => 'medium',
+            '3' => 'high',
+            '4' => 'critical',
+
             // Indonesian variations
-            'rendah' => 'LOW',
-            'sedang' => 'MEDIUM',
-            'tinggi' => 'HIGH',
-            'kritis' => 'CRITICAL',
+            'rendah' => 'low',
+            'sedang' => 'medium',
+            'tinggi' => 'high',
+            'kritis' => 'critical',
         ];
 
-        return $severityMap[strtolower($severity)] ?? 'MEDIUM';
+        return $severityMap[strtolower($severity)] ?? 'medium';
     }
 
     /**
@@ -255,7 +256,7 @@ class CrossPlatformDataMapper
         if ($timestamp instanceof \DateTime) {
             return $timestamp->format('Y-m-d H:i:s');
         }
-        
+
         if (is_string($timestamp)) {
             try {
                 return Carbon::parse($timestamp)->format('Y-m-d H:i:s');
@@ -263,7 +264,7 @@ class CrossPlatformDataMapper
                 return now()->format('Y-m-d H:i:s');
             }
         }
-        
+
         return now()->format('Y-m-d H:i:s');
     }
 
@@ -273,6 +274,7 @@ class CrossPlatformDataMapper
     private function buildMobileMetadata(array $data): array
     {
         return [
+            'source_platform' => 'mobile',
             'source' => 'mobile_app',
             'platform' => 'flutter',
             'app_version' => $data['app_version'] ?? 'unknown',
@@ -291,6 +293,7 @@ class CrossPlatformDataMapper
     private function buildWebMetadata(array $data): array
     {
         return [
+            'source_platform' => 'web',
             'source' => 'web_dashboard',
             'platform' => 'web',
             'browser_info' => $data['browser_info'] ?? 'unknown',
@@ -310,6 +313,7 @@ class CrossPlatformDataMapper
     private function extractMobileMetadata(array $metadata): array
     {
         return [
+            'source_platform' => $metadata['source_platform'] ?? 'mobile',
             'source' => $metadata['source'] ?? 'unknown',
             'app_version' => $metadata['app_version'] ?? null,
             'location_accuracy' => $metadata['location_accuracy'] ?? null,
@@ -422,7 +426,7 @@ class CrossPlatformDataMapper
         if (filter_var($imageUrl, FILTER_VALIDATE_URL)) {
             return $imageUrl; // For now, return original URL
         }
-        
+
         return asset('storage/thumbnails/' . basename($imageUrl));
     }
 
@@ -432,8 +436,8 @@ class CrossPlatformDataMapper
     private function needsAttention(object $report): bool
     {
         return in_array($report->status, ['PENDING', 'CRITICAL']) ||
-               in_array($report->severity_level, ['HIGH', 'CRITICAL']) ||
-               $report->created_at->diffInHours(now()) > 24;
+            in_array($report->severity_level, ['HIGH', 'CRITICAL']) ||
+            $report->created_at->diffInHours(now()) > 24;
     }
 
     /**
@@ -442,7 +446,7 @@ class CrossPlatformDataMapper
     private function calculatePriorityScore(object $report): int
     {
         $score = 0;
-        
+
         // Severity weight
         $severityWeights = [
             'CRITICAL' => 40,
@@ -451,7 +455,7 @@ class CrossPlatformDataMapper
             'LOW' => 10,
         ];
         $score += $severityWeights[$report->severity_level] ?? 0;
-        
+
         // Status weight
         $statusWeights = [
             'PENDING' => 20,
@@ -461,14 +465,14 @@ class CrossPlatformDataMapper
             'RESOLVED' => 1,
         ];
         $score += $statusWeights[$report->status] ?? 0;
-        
+
         // Time urgency (more points for older reports)
         $hoursOld = $report->created_at->diffInHours(now());
         if ($hoursOld > 48) $score += 20;
         elseif ($hoursOld > 24) $score += 15;
         elseif ($hoursOld > 12) $score += 10;
         elseif ($hoursOld > 6) $score += 5;
-        
+
         return $score;
     }
 
@@ -479,7 +483,7 @@ class CrossPlatformDataMapper
     {
         $metadata = $report->metadata ?? [];
         $verification = $metadata['verification'] ?? null;
-        
+
         if (!$verification) {
             return [
                 'is_verified' => false,
@@ -488,7 +492,7 @@ class CrossPlatformDataMapper
                 'notes' => null,
             ];
         }
-        
+
         return [
             'is_verified' => true,
             'verified_by' => $verification['verified_by'] ?? null,

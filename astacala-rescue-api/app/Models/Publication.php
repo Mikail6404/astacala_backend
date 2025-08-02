@@ -98,8 +98,8 @@ class Publication extends Model
     public function scopePublished($query)
     {
         return $query->where('status', 'published')
-                    ->whereNotNull('published_at')
-                    ->where('published_at', '<=', now());
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now());
     }
 
     /**
@@ -147,7 +147,7 @@ class Publication extends Model
      */
     public function getExcerptAttribute()
     {
-        return strlen($this->content) > 150 
+        return strlen($this->content) > 150
             ? substr(strip_tags($this->content), 0, 150) . '...'
             : strip_tags($this->content);
     }
@@ -166,8 +166,8 @@ class Publication extends Model
      */
     public function isPublished()
     {
-        return $this->status === 'published' 
-            && $this->published_at 
+        return $this->status === 'published'
+            && $this->published_at
             && $this->published_at <= now();
     }
 
@@ -196,7 +196,7 @@ class Publication extends Model
             ->where('id', '!=', $this->id)
             ->where(function ($query) {
                 $query->where('category', $this->category);
-                
+
                 if ($this->tags) {
                     $tags = explode(',', $this->tags);
                     foreach ($tags as $tag) {

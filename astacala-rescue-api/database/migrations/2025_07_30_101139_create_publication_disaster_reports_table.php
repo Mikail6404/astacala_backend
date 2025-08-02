@@ -16,10 +16,10 @@ return new class extends Migration
             $table->foreignId('publication_id')->constrained('publications')->onDelete('cascade');
             $table->foreignId('disaster_report_id')->constrained('disaster_reports')->onDelete('cascade');
             $table->timestamps();
-            
+
             // Unique constraint to prevent duplicate relationships
             $table->unique(['publication_id', 'disaster_report_id'], 'pub_disaster_unique');
-            
+
             // Indexes for performance
             $table->index('publication_id');
             $table->index('disaster_report_id');

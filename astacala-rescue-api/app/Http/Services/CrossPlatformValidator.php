@@ -28,7 +28,7 @@ class CrossPlatformValidator
             'estimated_affected' => 'nullable|integer|min:0|max:1000000',
             'weather_condition' => 'nullable|string|max:100',
             'incident_timestamp' => 'required|date|before_or_equal:now',
-            
+
             // Mobile-specific fields
             'app_version' => 'nullable|string|max:20',
             'device_info' => 'nullable|array',
@@ -37,11 +37,11 @@ class CrossPlatformValidator
             'device_info.os_version' => 'nullable|string|max:20',
             'location_accuracy' => 'nullable|numeric|min:0|max:1000',
             'network_type' => 'nullable|string|in:wifi,cellular,unknown',
-            
+
             // Images handling
             'images' => 'nullable|array|max:5',
             'images.*' => 'file|mimes:jpeg,jpg,png,webp|max:5120', // 5MB max per image
-            
+
             // Emergency contact
             'emergency_contact' => 'nullable|string|max:255',
         ], [
@@ -81,8 +81,8 @@ class CrossPlatformValidator
         $validator = Validator::make($data, [
             'title' => 'required|string|max:255|min:10',
             'description' => 'required|string|max:3000|min:20',
-            'disaster_type' => 'required|string|in:EARTHQUAKE,FLOOD,FIRE,HURRICANE,TSUNAMI,LANDSLIDE,VOLCANO,DROUGHT,BLIZZARD,TORNADO,OTHER',
-            'severity_level' => 'required|string|in:LOW,MEDIUM,HIGH,CRITICAL',
+            'disaster_type' => 'required|string|in:earthquake,flood,fire,hurricane,tsunami,landslide,volcano,drought,blizzard,tornado,other',
+            'severity_level' => 'required|string|in:low,medium,high,critical',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'location_name' => 'required|string|max:255|min:3',
@@ -90,17 +90,18 @@ class CrossPlatformValidator
             'estimated_affected' => 'nullable|integer|min:0|max:10000000',
             'weather_condition' => 'nullable|string|max:100',
             'incident_timestamp' => 'required|date|before_or_equal:now',
-            
+
             // Web-specific fields
+            'team_name' => 'nullable|string|max:255',
             'reporter_contact' => 'nullable|string|max:255',
-            'emergency_level' => 'nullable|string|in:LOW,MEDIUM,HIGH,CRITICAL',
+            'emergency_level' => 'nullable|string|in:low,medium,high,critical',
             'organization' => 'nullable|string|max:200',
             'reference_number' => 'nullable|string|max:50',
-            
+
             // Images handling (URLs for web)
             'images' => 'nullable|array|max:10',
             'images.*' => 'url|regex:/\.(jpeg|jpg|png|webp)$/i',
-            
+
             // Additional verification fields
             'source_verification' => 'nullable|string|max:500',
             'cross_reference' => 'nullable|string|max:500',
@@ -202,21 +203,21 @@ class CrossPlatformValidator
                     'phone' => 'nullable|string|max:20',
                 ];
                 break;
-                
+
             case 'update_role':
                 $rules = [
                     'role' => 'required|string|in:user,admin,super_admin',
                     'reason' => 'nullable|string|max:500',
                 ];
                 break;
-                
+
             case 'update_status':
                 $rules = [
                     'is_active' => 'required|boolean',
                     'reason' => 'nullable|string|max:500',
                 ];
                 break;
-                
+
             case 'update_profile':
                 $rules = [
                     'name' => 'sometimes|required|string|max:255|min:2',
@@ -313,7 +314,7 @@ class CrossPlatformValidator
                     'priority_level' => 'nullable|integer|min:1|max:10',
                 ];
                 break;
-                
+
             case 'publish_report':
                 $rules = [
                     'public_summary' => 'nullable|string|max:500',
@@ -323,7 +324,7 @@ class CrossPlatformValidator
                     'notification_regions.*' => 'string|max:100',
                 ];
                 break;
-                
+
             case 'assign_team':
                 $rules = [
                     'team_name' => 'required|string|max:255',
@@ -377,13 +378,13 @@ class CrossPlatformValidator
                 $rules['center_lat'] = 'nullable|numeric|between:-90,90';
                 $rules['center_lng'] = 'nullable|numeric|between:-180,180';
                 break;
-                
+
             case 'users':
                 $rules['role_filter'] = 'nullable|string|in:user,admin,super_admin';
                 $rules['status_filter'] = 'nullable|string|in:active,inactive';
                 $rules['organization_filter'] = 'nullable|string|max:200';
                 break;
-                
+
             case 'publications':
                 $rules['type_filter'] = 'nullable|string|in:article,guide,announcement,report_summary';
                 $rules['category_filter'] = 'nullable|string|max:100';
@@ -420,10 +421,10 @@ class CrossPlatformValidator
             if (is_string($value)) {
                 // Remove potential XSS
                 $data[$key] = strip_tags($value);
-                
+
                 // Trim whitespace
                 $data[$key] = trim($data[$key]);
-                
+
                 // Convert special characters
                 $data[$key] = htmlspecialchars($data[$key], ENT_QUOTES, 'UTF-8');
             } elseif (is_array($value)) {
@@ -448,17 +449,17 @@ class CrossPlatformValidator
                 $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
                 $maxSize = 5 * 1024 * 1024; // 5MB
                 break;
-                
+
             case 'document':
                 $allowedMimes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
                 $maxSize = 10 * 1024 * 1024; // 10MB
                 break;
-                
+
             default:
                 return false;
         }
 
-        return in_array($file->getMimeType(), $allowedMimes) && 
-               $file->getSize() <= $maxSize;
+        return in_array($file->getMimeType(), $allowedMimes) &&
+            $file->getSize() <= $maxSize;
     }
 }

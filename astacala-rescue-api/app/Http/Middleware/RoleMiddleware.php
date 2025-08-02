@@ -29,7 +29,7 @@ class RoleMiddleware
         // Check if user has any of the required roles
         if (!empty($roles)) {
             $userRole = $user->role ?? 'user'; // Default role is 'user'
-            
+
             if (!in_array($userRole, $roles)) {
                 return response()->json([
                     'status' => 'error',

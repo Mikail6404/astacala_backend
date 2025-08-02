@@ -21,10 +21,12 @@ echo "1. Testing enhanced health check endpoint...\n";
 try {
     $response = Http::get($baseUrl . '/health');
     $healthData = $response->json();
-    
-    if ($response->successful() && 
-        isset($healthData['platform_support']) && 
-        in_array('web', $healthData['platform_support'])) {
+
+    if (
+        $response->successful() &&
+        isset($healthData['platform_support']) &&
+        in_array('web', $healthData['platform_support'])
+    ) {
         echo "✅ Health check passed - Cross-platform support confirmed\n";
         echo "   Platform support: " . implode(', ', $healthData['platform_support']) . "\n";
         echo "   Integration status: " . $healthData['integration_status'] . "\n";
@@ -39,7 +41,7 @@ echo "\n2. Testing API versioning structure...\n";
 try {
     // Test v1 prefix access
     $response = Http::get($baseUrl . '/v1/auth/me');
-    
+
     if ($response->status() === 401) {
         echo "✅ API v1 prefix working - Authentication required (expected)\n";
     } else {
@@ -57,12 +59,14 @@ try {
         'Access-Control-Request-Method' => 'POST',
         'Access-Control-Request-Headers' => 'Content-Type, Authorization'
     ])->options($baseUrl . '/v1/reports');
-    
+
     $corsHeaders = $response->headers();
-    
-    if ($response->successful() && 
+
+    if (
+        $response->successful() &&
         isset($corsHeaders['Access-Control-Allow-Origin']) &&
-        isset($corsHeaders['Access-Control-Allow-Methods'])) {
+        isset($corsHeaders['Access-Control-Allow-Methods'])
+    ) {
         echo "✅ CORS preflight passed\n";
         echo "   Allowed origins: " . $corsHeaders['Access-Control-Allow-Origin'][0] . "\n";
         echo "   Allowed methods: " . $corsHeaders['Access-Control-Allow-Methods'][0] . "\n";
@@ -87,10 +91,10 @@ $newEndpoints = [
 
 foreach ($newEndpoints as $endpoint => $method) {
     try {
-        $response = $method === 'GET' 
+        $response = $method === 'GET'
             ? Http::get($baseUrl . $endpoint)
             : Http::post($baseUrl . $endpoint);
-        
+
         // We expect 401 (auth required) or 403 (permission required) for protected endpoints
         // This confirms the endpoints exist and are properly protected
         if (in_array($response->status(), [401, 403, 422])) {
@@ -111,14 +115,14 @@ try {
     if (class_exists('App\Models\Publication')) {
         echo "✅ Publication model loaded successfully\n";
     }
-    
+
     if (class_exists('App\Models\PublicationComment')) {
         echo "✅ PublicationComment model loaded successfully\n";
     }
-    
+
     // Test database connection
     $pdo = new PDO('sqlite:' . __DIR__ . '/database/database.sqlite');
-    
+
     // Check if new tables exist
     $tables = ['publications', 'publication_comments', 'publication_disaster_reports'];
     foreach ($tables as $table) {
@@ -129,7 +133,6 @@ try {
             echo "❌ Table '$table' missing from database\n";
         }
     }
-    
 } catch (Exception $e) {
     echo "❌ Database test failed: " . $e->getMessage() . "\n";
 }
@@ -140,12 +143,11 @@ try {
     if (class_exists('App\Http\Middleware\RoleMiddleware')) {
         echo "✅ RoleMiddleware class exists\n";
     }
-    
+
     // Test CORS middleware
     if (class_exists('App\Http\Middleware\CorsMiddleware')) {
         echo "✅ CorsMiddleware class exists\n";
     }
-    
 } catch (Exception $e) {
     echo "❌ Middleware test failed: " . $e->getMessage() . "\n";
 }

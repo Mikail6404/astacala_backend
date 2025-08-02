@@ -20,7 +20,7 @@ return new class extends Migration
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->softDeletes();
             $table->timestamps();
-            
+
             // Indexes for performance
             $table->index(['publication_id', 'status']);
             $table->index(['user_id']);

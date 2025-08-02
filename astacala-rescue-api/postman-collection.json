@@ -1,0 +1,725 @@
+{
+  "info": {
+    "name": "Astacala Rescue API",
+    "description": "Cross-platform API for disaster reporting and management system supporting both mobile (Flutter) and web (Gibran) applications.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearer_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000/api",
+      "type": "string"
+    },
+    {
+      "key": "bearer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "report_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "API Health Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.collectionVariables.set('bearer_token', response.data.token);",
+                  "        pm.collectionVariables.set('user_id', response.data.user.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"phone\": \"+628123456789\",\n    \"role\": \"VOLUNTEER\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.token) {",
+                  "        pm.collectionVariables.set('bearer_token', response.data.token);",
+                  "        pm.collectionVariables.set('user_id', response.data.user.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\",\n    \"platform\": \"mobile\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "logout"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"current_password\": \"password123\",\n    \"new_password\": \"newpassword123\",\n    \"new_password_confirmation\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "auth", "change-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Disaster Reports",
+      "item": [
+        {
+          "name": "List All Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/reports?page=1&per_page=15&platform=mobile",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "reports"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "15"
+                },
+                {
+                  "key": "platform",
+                  "value": "mobile"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create New Report",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.data && response.data.id) {",
+                  "        pm.collectionVariables.set('report_id', response.data.id);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Test Flood Report\",\n    \"description\": \"Heavy flooding observed in central area\",\n    \"disaster_type\": \"FLOOD\",\n    \"severity_level\": \"HIGH\",\n    \"latitude\": -6.2088,\n    \"longitude\": 106.8456,\n    \"location_name\": \"Jakarta, Indonesia\",\n    \"estimated_affected\": 500,\n    \"incident_timestamp\": \"2025-07-30T10:00:00Z\",\n    \"platform\": \"mobile\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/reports",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "reports"]
+            }
+          }
+        },
+        {
+          "name": "Get Report by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/reports/{{report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "reports", "{{report_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Report",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Updated Flood Report\",\n    \"description\": \"Updated: Heavy flooding continues in central area\",\n    \"severity_level\": \"CRITICAL\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/reports/{{report_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "reports", "{{report_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Report Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/reports/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "reports", "statistics"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] Verify Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"verification_notes\": \"Report verified by field team\",\n    \"admin_comments\": \"Location confirmed, severity assessed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/reports/{{report_id}}/verify",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "reports", "{{report_id}}", "verify"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] Publish Report",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/reports/{{report_id}}/publish",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "reports", "{{report_id}}", "publish"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "File Upload System",
+      "item": [
+        {
+          "name": "Upload Disaster Images",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "images[]",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "platform",
+                  "value": "mobile",
+                  "type": "text"
+                },
+                {
+                  "key": "is_primary",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/files/disasters/{{report_id}}/images",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "files", "disasters", "{{report_id}}", "images"]
+            }
+          }
+        },
+        {
+          "name": "Upload User Avatar",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "platform",
+                  "value": "mobile",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/files/avatar",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "files", "avatar"]
+            }
+          }
+        },
+        {
+          "name": "Upload Documents",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "documents[]",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "document_type",
+                  "value": "OFFICIAL_REPORT",
+                  "type": "text"
+                },
+                {
+                  "key": "platform",
+                  "value": "web",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/files/disasters/{{report_id}}/documents",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "files", "disasters", "{{report_id}}", "documents"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] Get Storage Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/files/storage/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "files", "storage", "statistics"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cross-Platform Notifications",
+      "item": [
+        {
+          "name": "Get User Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/notifications?platform=mobile&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "notifications"],
+              "query": [
+                {
+                  "key": "platform",
+                  "value": "mobile"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/notifications/unread-count?platform=mobile",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "notifications", "unread-count"],
+              "query": [
+                {
+                  "key": "platform",
+                  "value": "mobile"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark Notifications as Read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"notification_ids\": [1, 2, 3],\n    \"platform\": \"mobile\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/notifications/mark-read",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "notifications", "mark-read"]
+            }
+          }
+        },
+        {
+          "name": "Register FCM Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fcm_token\": \"dGhpcyBpcyBhIGZha2UgdG9rZW4...\",\n    \"platform\": \"mobile\",\n    \"device_info\": {\n        \"device_type\": \"android\",\n        \"app_version\": \"1.0.0\",\n        \"os_version\": \"Android 13\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/notifications/fcm-token",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "notifications", "fcm-token"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] Send Urgent Broadcast",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Emergency Alert\",\n    \"message\": \"Test emergency notification for system verification\",\n    \"type\": \"EMERGENCY_ALERT\",\n    \"target_platforms\": [\"mobile\", \"web\"],\n    \"target_roles\": [\"VOLUNTEER\", \"ADMIN\"],\n    \"data\": {\n        \"priority\": \"HIGH\",\n        \"action_required\": true,\n        \"expiry_time\": \"2025-07-30T18:00:00Z\"\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/notifications/broadcast",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "notifications", "broadcast"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Updated Test User\",\n    \"phone\": \"+628123456789\",\n    \"address\": \"Jakarta, Indonesia\",\n    \"emergency_contact\": \"+628987654321\",\n    \"platform_preferences\": {\n        \"mobile\": {\n            \"push_notifications\": true,\n            \"emergency_alerts\": true\n        },\n        \"web\": {\n            \"email_notifications\": true,\n            \"desktop_notifications\": false\n        }\n    }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/users/profile",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Get User Reports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/users/reports",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "users", "reports"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] List All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/users/admin-list?page=1&per_page=20",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "users", "admin-list"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "per_page",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Forum Messages",
+      "item": [
+        {
+          "name": "Get Report Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/v1/forum/reports/{{report_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "forum", "reports", "{{report_id}}", "messages"]
+            }
+          }
+        },
+        {
+          "name": "Post Message to Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"message\": \"I can confirm this situation, I'm in the same area\",\n    \"message_type\": \"WITNESS_CONFIRMATION\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/v1/forum/reports/{{report_id}}/messages",
+              "host": ["{{base_url}}"],
+              "path": ["v1", "forum", "reports", "{{report_id}}", "messages"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gibran Web Compatibility",
+      "item": [
+        {
+          "name": "Get Berita Bencana (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/gibran/berita-bencana",
+              "host": ["{{base_url}}"],
+              "path": ["gibran", "berita-bencana"]
+            }
+          }
+        },
+        {
+          "name": "Web Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"adminpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/gibran/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["gibran", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "[Admin] Get Dashboard Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/gibran/dashboard/statistics",
+              "host": ["{{base_url}}"],
+              "path": ["gibran", "dashboard", "statistics"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Testing Endpoints",
+      "item": [
+        {
+          "name": "Test Notification System",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/test-notifications",
+              "host": ["{{base_url}}"],
+              "path": ["test-notifications"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

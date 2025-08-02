@@ -10,12 +10,18 @@ class ReportImage extends Model
     use HasFactory;
 
     protected $fillable = [
-        'report_id',
-        'image_url',
-        'thumbnail_url',
-        'caption',
+        'disaster_report_id',
+        'image_path',
+        'thumbnail_path',
+        'original_filename',
         'file_size',
+        'mime_type',
         'upload_order',
+        'is_primary',
+        'uploaded_by',
+        'platform',
+        'metadata',
+        'caption',
     ];
 
     protected function casts(): array
@@ -23,6 +29,9 @@ class ReportImage extends Model
         return [
             'file_size' => 'integer',
             'upload_order' => 'integer',
+            'is_primary' => 'boolean',
+            'uploaded_by' => 'integer',
+            'metadata' => 'array',
         ];
     }
 
@@ -31,6 +40,14 @@ class ReportImage extends Model
      */
     public function disasterReport()
     {
-        return $this->belongsTo(DisasterReport::class, 'report_id');
+        return $this->belongsTo(DisasterReport::class, 'disaster_report_id');
+    }
+
+    /**
+     * Get the user who uploaded this image.
+     */
+    public function uploader()
+    {
+        return $this->belongsTo(User::class, 'uploaded_by');
     }
 }

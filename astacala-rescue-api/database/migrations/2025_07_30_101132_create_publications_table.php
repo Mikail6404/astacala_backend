@@ -22,22 +22,22 @@ return new class extends Migration
             $table->string('slug')->unique()->nullable();
             $table->text('meta_description')->nullable();
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
-            
+
             // User relationships
             $table->foreignId('author_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('published_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('updated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->foreignId('archived_by')->nullable()->constrained('users')->onDelete('set null');
-            
+
             // Timestamps
             $table->timestamp('published_at')->nullable();
             $table->timestamp('archived_at')->nullable();
             $table->softDeletes();
             $table->timestamps();
-            
+
             // Analytics
             $table->unsignedBigInteger('view_count')->default(0);
-            
+
             // Indexes for performance
             $table->index(['status', 'published_at']);
             $table->index(['type', 'category']);
