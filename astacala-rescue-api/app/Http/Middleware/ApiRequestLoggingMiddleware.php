@@ -2,16 +2,16 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\SuspiciousActivityMonitoringService;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
-use App\Services\SuspiciousActivityMonitoringService;
 
 /**
  * API Request Logging Middleware
- * 
+ *
  * Comprehensive logging for API requests with security monitoring
  * Tracks authentication, performance, and potential security threats
  */
@@ -23,12 +23,11 @@ class ApiRequestLoggingMiddleware
     {
         $this->securityMonitor = $securityMonitor;
     }
+
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -42,7 +41,7 @@ class ApiRequestLoggingMiddleware
         if (in_array('CLIENT_BLOCKED', $suspiciousIndicators)) {
             return response()->json([
                 'error' => 'Access denied',
-                'message' => 'Your request has been blocked due to suspicious activity'
+                'message' => 'Your request has been blocked due to suspicious activity',
             ], 403);
         }
 
@@ -183,7 +182,7 @@ class ApiRequestLoggingMiddleware
             'auth/register',
             'auth/forgot-password',
             'auth/reset-password',
-            'auth/change-password'
+            'auth/change-password',
         ];
 
         foreach ($sensitiveEndpoints as $endpoint) {
@@ -209,7 +208,7 @@ class ApiRequestLoggingMiddleware
             'current_password',
             'new_password',
             'token',
-            'api_key'
+            'api_key',
         ];
 
         foreach ($sensitiveFields as $field) {
@@ -228,13 +227,13 @@ class ApiRequestLoggingMiddleware
     {
         $content = $response->getContent();
 
-        if (!$content) {
+        if (! $content) {
             return [];
         }
 
         $decoded = json_decode($content, true);
 
-        if (!$decoded) {
+        if (! $decoded) {
             return ['raw_content' => substr($content, 0, 500)]; // First 500 chars
         }
 

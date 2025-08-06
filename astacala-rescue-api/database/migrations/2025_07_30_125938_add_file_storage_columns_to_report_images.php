@@ -13,23 +13,23 @@ return new class extends Migration
     {
         Schema::table('report_images', function (Blueprint $table) {
             // Add new columns for enhanced file storage (if they don't exist)
-            if (!Schema::hasColumn('report_images', 'original_filename')) {
+            if (! Schema::hasColumn('report_images', 'original_filename')) {
                 $table->string('original_filename')->nullable();
             }
-            if (!Schema::hasColumn('report_images', 'mime_type')) {
+            if (! Schema::hasColumn('report_images', 'mime_type')) {
                 $table->string('mime_type')->nullable();
             }
-            if (!Schema::hasColumn('report_images', 'is_primary')) {
+            if (! Schema::hasColumn('report_images', 'is_primary')) {
                 $table->boolean('is_primary')->default(false);
             }
-            if (!Schema::hasColumn('report_images', 'uploaded_by')) {
+            if (! Schema::hasColumn('report_images', 'uploaded_by')) {
                 $table->unsignedBigInteger('uploaded_by')->nullable();
                 $table->foreign('uploaded_by')->references('id')->on('users')->onDelete('set null');
             }
-            if (!Schema::hasColumn('report_images', 'platform')) {
+            if (! Schema::hasColumn('report_images', 'platform')) {
                 $table->string('platform')->default('mobile');
             }
-            if (!Schema::hasColumn('report_images', 'metadata')) {
+            if (! Schema::hasColumn('report_images', 'metadata')) {
                 $table->json('metadata')->nullable();
             }
         });
@@ -49,7 +49,7 @@ return new class extends Migration
                 'is_primary',
                 'uploaded_by',
                 'platform',
-                'metadata'
+                'metadata',
             ]);
         });
     }

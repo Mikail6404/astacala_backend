@@ -7,10 +7,10 @@ $baseUrl = 'http://127.0.0.1:8000';
 // Get authentication token
 $credentials = [
     'email' => 'volunteer@mobile.test',
-    'password' => 'password123'
+    'password' => 'password123',
 ];
 
-$response = makeRequest('POST', $baseUrl . '/api/v1/auth/login', $credentials);
+$response = makeRequest('POST', $baseUrl.'/api/v1/auth/login', $credentials);
 $token = $response['data']['tokens']['accessToken'];
 
 echo "🔑 Authentication successful\n\n";
@@ -31,15 +31,15 @@ try {
         'incidentTimestamp' => date('Y-m-d\TH:i:s\Z'),
     ];
 
-    $createResponse = makeRequest('POST', $baseUrl . '/api/v1/reports', $reportData, $token);
+    $createResponse = makeRequest('POST', $baseUrl.'/api/v1/reports', $reportData, $token);
     $reportId = $createResponse['data']['reportId'];
 
-    $readResponse = makeRequest('GET', $baseUrl . '/api/v1/reports/' . $reportId, [], $token);
+    $readResponse = makeRequest('GET', $baseUrl.'/api/v1/reports/'.$reportId, [], $token);
 
     echo "  ✅ Data synchronization working\n";
     $results['Data Synchronization'] = true;
 } catch (Exception $e) {
-    echo "  ❌ Data sync failed: " . $e->getMessage() . "\n";
+    echo '  ❌ Data sync failed: '.$e->getMessage()."\n";
     $results['Data Synchronization'] = false;
 }
 
@@ -50,14 +50,14 @@ try {
     file_put_contents($testFile, 'Test file content');
 
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $baseUrl . '/api/v1/files/avatar');
+    curl_setopt($ch, CURLOPT_URL, $baseUrl.'/api/v1/files/avatar');
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, [
-        'avatar' => new CURLFile($testFile, 'image/jpeg', 'test.jpg')
+        'avatar' => new CURLFile($testFile, 'image/jpeg', 'test.jpg'),
     ]);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $token,
-        'Accept: application/json'
+        'Authorization: Bearer '.$token,
+        'Accept: application/json',
     ]);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -76,19 +76,19 @@ try {
         $results['File Upload'] = false;
     }
 } catch (Exception $e) {
-    echo "  ❌ File upload error: " . $e->getMessage() . "\n";
+    echo '  ❌ File upload error: '.$e->getMessage()."\n";
     $results['File Upload'] = false;
 }
 
 // Test 3: Real-time Features (FIXED)
 echo "\n⚡ Testing Real-time Features (FIXED)...\n";
 try {
-    $forumResponse = makeRequest('GET', $baseUrl . '/api/v1/forum', [], $token);
+    $forumResponse = makeRequest('GET', $baseUrl.'/api/v1/forum', [], $token);
 
     echo "  ✅ Forum endpoint working\n";
     $results['Real-time Features'] = true;
 } catch (Exception $e) {
-    echo "  ❌ Real-time features failed: " . $e->getMessage() . "\n";
+    echo '  ❌ Real-time features failed: '.$e->getMessage()."\n";
     $results['Real-time Features'] = false;
 }
 
@@ -98,18 +98,18 @@ $times = [];
 $testEndpoints = [
     '/api/v1/health',
     '/api/v1/auth/me',
-    '/api/v1/reports'
+    '/api/v1/reports',
 ];
 
 foreach ($testEndpoints as $endpoint) {
     $start = microtime(true);
-    makeRequest('GET', $baseUrl . $endpoint, [], $token);
+    makeRequest('GET', $baseUrl.$endpoint, [], $token);
     $end = microtime(true);
     $times[] = ($end - $start) * 1000;
 }
 
 $avgTime = array_sum($times) / count($times);
-echo "  📊 Average response time: " . round($avgTime, 2) . "ms\n";
+echo '  📊 Average response time: '.round($avgTime, 2)."ms\n";
 
 $results['Performance <200ms'] = $avgTime < 200;
 if ($avgTime < 200) {
@@ -121,7 +121,7 @@ if ($avgTime < 200) {
 // Test 5: Security Standards
 echo "\n🔒 Testing Security Standards...\n";
 try {
-    makeRequest('GET', $baseUrl . '/api/v1/reports', [], null);
+    makeRequest('GET', $baseUrl.'/api/v1/reports', [], null);
     echo "  ❌ Security failure: Protected endpoint accessible without token\n";
     $results['Security Standards'] = false;
 } catch (Exception $e) {
@@ -129,7 +129,7 @@ try {
         echo "  ✅ Protected endpoints properly secured\n";
         $results['Security Standards'] = true;
     } else {
-        echo "  ❌ Unexpected security error: " . $e->getMessage() . "\n";
+        echo '  ❌ Unexpected security error: '.$e->getMessage()."\n";
         $results['Security Standards'] = false;
     }
 }
@@ -138,9 +138,9 @@ try {
 $results['Authentication'] = true; // Already passed if we got here
 
 // Final Results
-echo "\n" . str_repeat("=", 60) . "\n";
+echo "\n".str_repeat('=', 60)."\n";
 echo "FINAL RESULTS AFTER FIXES:\n";
-echo str_repeat("=", 60) . "\n";
+echo str_repeat('=', 60)."\n";
 
 $passCount = 0;
 $totalTests = count($results);
@@ -148,7 +148,9 @@ $totalTests = count($results);
 foreach ($results as $test => $passed) {
     $status = $passed ? '✅ PASS' : '❌ FAIL';
     echo "$status $test\n";
-    if ($passed) $passCount++;
+    if ($passed) {
+        $passCount++;
+    }
 }
 
 $successRate = round(($passCount / $totalTests) * 100, 1);
@@ -172,7 +174,7 @@ function makeRequest($method, $url, $data = [], $token = null)
 
     $headers = ['Accept: application/json'];
     if ($token) {
-        $headers[] = 'Authorization: Bearer ' . $token;
+        $headers[] = 'Authorization: Bearer '.$token;
     }
 
     if ($method === 'POST' || $method === 'PUT') {
@@ -198,7 +200,7 @@ function makeRequest($method, $url, $data = [], $token = null)
 
     $decoded = json_decode($response, true);
     if ($httpCode >= 400) {
-        throw new Exception("HTTP $httpCode: " . ($decoded['message'] ?? $response));
+        throw new Exception("HTTP $httpCode: ".($decoded['message'] ?? $response));
     }
 
     return $decoded;

@@ -2,16 +2,16 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
 /**
  * Authentication Testing Suite
- * 
+ *
  * Tests for dual authentication system (JWT + Session)
  * Based on Week 3, Day 6-7 requirements from integration roadmap
  */
@@ -20,6 +20,7 @@ class AuthenticationTestSuite extends TestCase
     use RefreshDatabase, WithFaker;
 
     private $testUser;
+
     private $adminSessionData;
 
     protected function setUp(): void
@@ -31,14 +32,14 @@ class AuthenticationTestSuite extends TestCase
             'name' => 'Test Volunteer',
             'email' => 'volunteer@test.com',
             'password' => Hash::make('password123'),
-            'phone' => '+62812345678'
+            'phone' => '+62812345678',
         ]);
 
         // Simulate admin session data
         $this->adminSessionData = [
             'admin_id' => 1,
             'admin_name' => 'Test Admin',
-            'admin_email' => 'admin@test.com'
+            'admin_email' => 'admin@test.com',
         ];
     }
 
@@ -50,7 +51,7 @@ class AuthenticationTestSuite extends TestCase
         // Step 1: Login and get JWT token
         $loginResponse = $this->postJson('/api/v1/auth/login', [
             'email' => $this->testUser->email,
-            'password' => 'password123'
+            'password' => 'password123',
         ]);
 
         $loginResponse->assertStatus(200);
@@ -59,8 +60,8 @@ class AuthenticationTestSuite extends TestCase
             'message',
             'data' => [
                 'user',
-                'token'
-            ]
+                'token',
+            ],
         ]);
 
         $token = $loginResponse->json('data.token');
@@ -68,7 +69,7 @@ class AuthenticationTestSuite extends TestCase
 
         // Step 2: Use JWT token to access protected endpoint
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/v1/auth/me');
 
         $response->assertStatus(200);
@@ -77,8 +78,8 @@ class AuthenticationTestSuite extends TestCase
             'data' => [
                 'id',
                 'name',
-                'email'
-            ]
+                'email',
+            ],
         ]);
 
         $this->assertEquals($this->testUser->email, $response->json('data.email'));
@@ -96,7 +97,7 @@ class AuthenticationTestSuite extends TestCase
 
         // Step 2: Test dual auth middleware with session
         $response = $this->withMiddleware([
-            \App\Http\Middleware\DualAuthenticationMiddleware::class
+            \App\Http\Middleware\DualAuthenticationMiddleware::class,
         ])->getJson('/api/v1/health');
 
         // Note: This tests the middleware logic, actual web routes would be different
@@ -133,7 +134,7 @@ class AuthenticationTestSuite extends TestCase
         // Test 4a: Mobile login flow unchanged
         $mobileLoginResponse = $this->postJson('/api/v1/auth/login', [
             'email' => $this->testUser->email,
-            'password' => 'password123'
+            'password' => 'password123',
         ]);
 
         $mobileLoginResponse->assertStatus(200);
@@ -144,23 +145,23 @@ class AuthenticationTestSuite extends TestCase
                 'user' => [
                     'id',
                     'name',
-                    'email'
+                    'email',
                 ],
-                'token'
-            ]
+                'token',
+            ],
         ]);
 
         // Test 4b: Mobile logout flow unchanged
         $token = $mobileLoginResponse->json('data.token');
 
         $logoutResponse = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/v1/auth/logout');
 
         $logoutResponse->assertStatus(200);
         $logoutResponse->assertJson([
             'success' => true,
-            'message' => 'Logged out successfully'
+            'message' => 'Logged out successfully',
         ]);
 
         $this->addToAssertionCount(2);
@@ -171,13 +172,13 @@ class AuthenticationTestSuite extends TestCase
      */
     public function test_user_context_service_functionality()
     {
-        $userContextService = new \App\Services\UserContextService();
+        $userContextService = new \App\Services\UserContextService;
 
         // Test 5a: Mobile user context
         $mobileRequest = $this->createMockRequest([
             'authenticated_as' => 'mobile_user',
             'platform' => 'mobile',
-            'user_type' => 'volunteer'
+            'user_type' => 'volunteer',
         ]);
 
         $this->assertTrue($userContextService->isMobileUser($mobileRequest));
@@ -189,7 +190,7 @@ class AuthenticationTestSuite extends TestCase
             'authenticated_as' => 'web_admin',
             'platform' => 'web',
             'user_type' => 'admin',
-            'admin_id' => 1
+            'admin_id' => 1,
         ]);
 
         $this->assertTrue($userContextService->isWebAdmin($webRequest));
@@ -204,13 +205,13 @@ class AuthenticationTestSuite extends TestCase
      */
     public function test_platform_specific_permissions()
     {
-        $userContextService = new \App\Services\UserContextService();
+        $userContextService = new \App\Services\UserContextService;
 
         // Test mobile permissions
         $mobileRequest = $this->createMockRequest([
             'authenticated_as' => 'mobile_user',
             'platform' => 'mobile',
-            'user_type' => 'volunteer'
+            'user_type' => 'volunteer',
         ]);
 
         $this->assertTrue($userContextService->hasPermission($mobileRequest, 'submit_report'));
@@ -223,7 +224,7 @@ class AuthenticationTestSuite extends TestCase
             'authenticated_as' => 'web_admin',
             'platform' => 'web',
             'user_type' => 'admin',
-            'admin_id' => 1
+            'admin_id' => 1,
         ]);
 
         $this->assertTrue($userContextService->hasPermission($webRequest, 'verify_reports'));
@@ -269,7 +270,7 @@ class AuthenticationTestSuite extends TestCase
         $authMeResponse = $this->getJson('/api/v1/auth/me');
         $authMeResponse->assertStatus(200);
         $authMeResponse->assertJsonFragment([
-            'email' => $this->testUser->email
+            'email' => $this->testUser->email,
         ]);
 
         $this->addToAssertionCount(2);
@@ -285,7 +286,7 @@ class AuthenticationTestSuite extends TestCase
         // Test JWT authentication performance
         $response = $this->postJson('/api/v1/auth/login', [
             'email' => $this->testUser->email,
-            'password' => 'password123'
+            'password' => 'password123',
         ]);
 
         $authTime = microtime(true) - $startTime;
@@ -308,7 +309,7 @@ class AuthenticationTestSuite extends TestCase
             'name' => 'Test User',
             'email' => 'test@example.com',
             'password' => '123', // Weak password
-            'password_confirmation' => '123'
+            'password_confirmation' => '123',
         ]);
 
         $weakPasswordResponse->assertStatus(422); // Validation error
@@ -324,7 +325,7 @@ class AuthenticationTestSuite extends TestCase
      */
     private function createMockRequest(array $attributes = [])
     {
-        $request = new \Illuminate\Http\Request();
+        $request = new \Illuminate\Http\Request;
 
         foreach ($attributes as $key => $value) {
             $request->merge([$key => $value]);
@@ -348,7 +349,7 @@ class AuthenticationTestSuite extends TestCase
             'error_handling' => 'PASSED',
             'cross_platform_access' => 'PASSED',
             'performance_benchmarks' => 'PASSED',
-            'security_validation' => 'PASSED'
+            'security_validation' => 'PASSED',
         ];
 
         foreach ($testResults as $test => $status) {

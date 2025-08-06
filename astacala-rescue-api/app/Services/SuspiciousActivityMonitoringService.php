@@ -5,19 +5,19 @@ namespace App\Services;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 /**
  * Suspicious Activity Monitoring Service
- * 
+ *
  * Advanced threat detection and security monitoring for API requests
  * Implements pattern recognition, rate limiting, and automated response
  */
 class SuspiciousActivityMonitoringService
 {
     protected const CACHE_PREFIX = 'security_monitor:';
+
     protected const DEFAULT_THRESHOLD_MINUTES = 60;
+
     protected const DEFAULT_BLOCK_DURATION = 1440; // 24 hours
 
     protected array $thresholds = [
@@ -40,6 +40,7 @@ class SuspiciousActivityMonitoringService
         // Check if client is already blocked
         if ($this->isClientBlocked($clientIdentifier)) {
             $suspiciousIndicators[] = 'CLIENT_BLOCKED';
+
             return $suspiciousIndicators;
         }
 
@@ -85,7 +86,7 @@ class SuspiciousActivityMonitoringService
         $ip = $request->ip();
         $userAgent = $request->userAgent() ?? '';
 
-        return md5($ip . '|' . $userAgent);
+        return md5($ip.'|'.$userAgent);
     }
 
     /**
@@ -93,7 +94,7 @@ class SuspiciousActivityMonitoringService
      */
     protected function isClientBlocked(string $clientIdentifier): bool
     {
-        return Cache::has(self::CACHE_PREFIX . 'blocked:' . $clientIdentifier);
+        return Cache::has(self::CACHE_PREFIX.'blocked:'.$clientIdentifier);
     }
 
     /**
@@ -104,11 +105,11 @@ class SuspiciousActivityMonitoringService
         $blockDuration = min($threatLevel * 60, $this->thresholds['blocked_duration_minutes']);
 
         Cache::put(
-            self::CACHE_PREFIX . 'blocked:' . $clientIdentifier,
+            self::CACHE_PREFIX.'blocked:'.$clientIdentifier,
             [
                 'blocked_at' => now(),
                 'threat_level' => $threatLevel,
-                'expires_at' => now()->addMinutes($blockDuration)
+                'expires_at' => now()->addMinutes($blockDuration),
             ],
             $blockDuration * 60 // Convert to seconds
         );
@@ -127,17 +128,18 @@ class SuspiciousActivityMonitoringService
     protected function checkFailedAuthenticationPattern(Request $request, string $clientIdentifier): bool
     {
         // Only check auth endpoints
-        if (!str_contains($request->path(), 'auth/login')) {
+        if (! str_contains($request->path(), 'auth/login')) {
             return false;
         }
 
-        $cacheKey = self::CACHE_PREFIX . 'failed_auth:' . $clientIdentifier;
+        $cacheKey = self::CACHE_PREFIX.'failed_auth:'.$clientIdentifier;
         $attempts = Cache::get($cacheKey, 0);
 
         // This would be called after processing the request
         // For now, we'll check if it's a POST to login endpoint
         if ($request->isMethod('POST')) {
             Cache::put($cacheKey, $attempts + 1, self::DEFAULT_THRESHOLD_MINUTES * 60);
+
             return ($attempts + 1) >= $this->thresholds['failed_auth_attempts'];
         }
 
@@ -149,14 +151,14 @@ class SuspiciousActivityMonitoringService
      */
     protected function checkRapidRequestPattern(Request $request, string $clientIdentifier): bool
     {
-        $cacheKey = self::CACHE_PREFIX . 'requests:' . $clientIdentifier;
+        $cacheKey = self::CACHE_PREFIX.'requests:'.$clientIdentifier;
         $requests = Cache::get($cacheKey, []);
 
         // Add current timestamp
         $requests[] = time();
 
         // Keep only requests from last minute
-        $requests = array_filter($requests, fn($timestamp) => $timestamp > (time() - 60));
+        $requests = array_filter($requests, fn ($timestamp) => $timestamp > (time() - 60));
 
         Cache::put($cacheKey, $requests, 300); // Keep for 5 minutes
 
@@ -168,12 +170,12 @@ class SuspiciousActivityMonitoringService
      */
     protected function checkSuspiciousEndpointScanning(Request $request, string $clientIdentifier): bool
     {
-        $cacheKey = self::CACHE_PREFIX . 'endpoints:' . $clientIdentifier;
+        $cacheKey = self::CACHE_PREFIX.'endpoints:'.$clientIdentifier;
         $endpoints = Cache::get($cacheKey, []);
 
         $currentEndpoint = $request->path();
 
-        if (!in_array($currentEndpoint, $endpoints)) {
+        if (! in_array($currentEndpoint, $endpoints)) {
             $endpoints[] = $currentEndpoint;
         }
 
@@ -214,7 +216,7 @@ class SuspiciousActivityMonitoringService
 
         $content = $request->getContent();
         $queryString = $request->getQueryString() ?? '';
-        $allInput = $content . ' ' . $queryString;
+        $allInput = $content.' '.$queryString;
 
         foreach ($suspiciousPatterns as $pattern) {
             if (preg_match($pattern, $allInput)) {
@@ -243,7 +245,7 @@ class SuspiciousActivityMonitoringService
 
         $content = $request->getContent();
         $queryString = $request->getQueryString() ?? '';
-        $allInput = $content . ' ' . $queryString;
+        $allInput = $content.' '.$queryString;
 
         foreach ($suspiciousPatterns as $pattern) {
             if (preg_match($pattern, $allInput)) {
@@ -273,7 +275,7 @@ class SuspiciousActivityMonitoringService
         $content = $request->getContent();
 
         foreach ($suspiciousPatterns as $pattern) {
-            if (preg_match($pattern, $fullUrl . ' ' . $content)) {
+            if (preg_match($pattern, $fullUrl.' '.$content)) {
                 return true;
             }
         }
@@ -312,7 +314,7 @@ class SuspiciousActivityMonitoringService
             'nmap',
             'nikto',
             'burp',
-            'zap'
+            'zap',
         ];
 
         foreach ($botPatterns as $pattern) {
@@ -332,7 +334,7 @@ class SuspiciousActivityMonitoringService
         // This would typically integrate with a GeoIP service
         // For now, we'll implement a basic check
 
-        $cacheKey = self::CACHE_PREFIX . 'geo:' . $clientIdentifier;
+        $cacheKey = self::CACHE_PREFIX.'geo:'.$clientIdentifier;
         $previousLocation = Cache::get($cacheKey);
 
         // Mock location data - in production, use actual GeoIP service
@@ -366,7 +368,8 @@ class SuspiciousActivityMonitoringService
     protected function checkUnusualHttpMethods(Request $request): bool
     {
         $allowedMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS', 'HEAD'];
-        return !in_array(strtoupper($request->method()), $allowedMethods);
+
+        return ! in_array(strtoupper($request->method()), $allowedMethods);
     }
 
     /**
@@ -378,14 +381,14 @@ class SuspiciousActivityMonitoringService
             'SQL_INJECTION_PATTERNS',
             'DIRECTORY_TRAVERSAL_PATTERNS',
             'FAILED_AUTHENTICATION_PATTERN',
-            'CLIENT_BLOCKED'
+            'CLIENT_BLOCKED',
         ];
 
         $mediumRiskIndicators = [
             'XSS_PATTERNS',
             'RAPID_REQUEST_PATTERN',
             'SUSPICIOUS_ENDPOINT_SCANNING',
-            'BOT_LIKE_USER_AGENT'
+            'BOT_LIKE_USER_AGENT',
         ];
 
         $threatLevel = 0;

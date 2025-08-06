@@ -1,9 +1,9 @@
 <?php
 
 // Simple database connectivity test for backend validation
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
-$app = require_once __DIR__ . '/bootstrap/app.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 echo "=== Backend Database Connectivity Test ===\n";
@@ -40,6 +40,6 @@ try {
     echo "Authentication: Sanctum available\n";
     echo "Status: ✅ READY FOR INTEGRATION TESTING\n";
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    echo '❌ ERROR: '.$e->getMessage()."\n";
     echo "Backend may need configuration or database setup\n";
 }

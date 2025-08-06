@@ -14,7 +14,7 @@ $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, 'http://localhost:8001/api/v1/users/admin-list');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $token,
+    'Authorization: Bearer '.$token,
     'Accept: application/json',
     'Content-Type: application/json',
 ]);

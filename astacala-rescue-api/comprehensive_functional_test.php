@@ -7,24 +7,25 @@ $baseUrl = 'http://127.0.0.1:8000';
 // Test with actual user from database
 $credentials = [
     'email' => 'volunteer@mobile.test',
-    'password' => 'password123'
+    'password' => 'password123',
 ];
 
 echo "🔑 Testing login with existing user: {$credentials['email']}\n";
 
 try {
-    $response = makeRequest('POST', $baseUrl . '/api/v1/auth/login', $credentials);
+    $response = makeRequest('POST', $baseUrl.'/api/v1/auth/login', $credentials);
 
     // FIX: Correct token extraction from response structure
     $token = null;
     if (isset($response['data']['tokens']['accessToken'])) {
         $token = $response['data']['tokens']['accessToken'];
-        echo "✅ Login successful! Token: " . substr($token, 0, 20) . "...\n\n";
+        echo '✅ Login successful! Token: '.substr($token, 0, 20)."...\n\n";
     } elseif (isset($response['access_token'])) {
         $token = $response['access_token'];
-        echo "✅ Login successful! Token: " . substr($token, 0, 20) . "...\n\n";
+        echo '✅ Login successful! Token: '.substr($token, 0, 20)."...\n\n";
     } else {
-        echo "❌ Login failed - no token in response: " . json_encode($response) . "\n";
+        echo '❌ Login failed - no token in response: '.json_encode($response)."\n";
+
         return;
     }
 
@@ -32,9 +33,9 @@ try {
     $results = testAllFunctionality($baseUrl, $token);
 
     // Final assessment
-    echo "\n" . str_repeat("=", 60) . "\n";
+    echo "\n".str_repeat('=', 60)."\n";
     echo "FINAL RESULTS SUMMARY:\n";
-    echo str_repeat("=", 60) . "\n";
+    echo str_repeat('=', 60)."\n";
 
     $passCount = 0;
     $totalTests = count($results);
@@ -42,7 +43,9 @@ try {
     foreach ($results as $test => $passed) {
         $status = $passed ? '✅ PASS' : '❌ FAIL';
         echo "$status $test\n";
-        if ($passed) $passCount++;
+        if ($passed) {
+            $passCount++;
+        }
     }
 
     $successRate = round(($passCount / $totalTests) * 100, 1);
@@ -56,7 +59,7 @@ try {
         echo "❌ SYSTEM STATUS: POOR - Requires significant fixes\n";
     }
 } catch (Exception $e) {
-    echo "❌ Login error: " . $e->getMessage() . "\n";
+    echo '❌ Login error: '.$e->getMessage()."\n";
 }
 
 function testAllFunctionality($baseUrl, $token)
@@ -77,38 +80,38 @@ function testAllFunctionality($baseUrl, $token)
             'latitude' => -6.2088,
             'longitude' => 106.8456,
             'location_name' => 'Jakarta Test',
-            'address' => 'Test Address 123'
+            'address' => 'Test Address 123',
         ];
 
         // CREATE
-        $createResponse = makeRequest('POST', $baseUrl . '/api/v1/reports', $reportData, $token);
+        $createResponse = makeRequest('POST', $baseUrl.'/api/v1/reports', $reportData, $token);
         $reportId = $createResponse['id'] ?? $createResponse['data']['id'] ?? null;
 
-        if (!$reportId) {
-            throw new Exception("Failed to create report: " . json_encode($createResponse));
+        if (! $reportId) {
+            throw new Exception('Failed to create report: '.json_encode($createResponse));
         }
 
         echo "  ✅ CREATE: Report ID $reportId created\n";
 
         // READ
-        $readResponse = makeRequest('GET', $baseUrl . '/api/v1/reports/' . $reportId, [], $token);
+        $readResponse = makeRequest('GET', $baseUrl.'/api/v1/reports/'.$reportId, [], $token);
         $readId = $readResponse['id'] ?? $readResponse['data']['id'] ?? null;
 
         if ($readId != $reportId) {
-            throw new Exception("Failed to read report back");
+            throw new Exception('Failed to read report back');
         }
 
         echo "  ✅ READ: Report successfully retrieved\n";
 
         // UPDATE
         $updateData = ['title' => 'Updated Comprehensive Test Report'];
-        $updateResponse = makeRequest('PUT', $baseUrl . '/api/v1/reports/' . $reportId, $updateData, $token);
+        $updateResponse = makeRequest('PUT', $baseUrl.'/api/v1/reports/'.$reportId, $updateData, $token);
 
         echo "  ✅ UPDATE: Report successfully updated\n";
 
         $results['Data Synchronization'] = true;
     } catch (Exception $e) {
-        echo "  ❌ Data sync failed: " . $e->getMessage() . "\n";
+        echo '  ❌ Data sync failed: '.$e->getMessage()."\n";
         $results['Data Synchronization'] = false;
     }
 
@@ -120,20 +123,20 @@ function testAllFunctionality($baseUrl, $token)
             '/api/v1/health',
             '/api/v1/auth/me',
             '/api/v1/reports',
-            '/api/v1/notifications'
+            '/api/v1/notifications',
         ];
 
         foreach ($testEndpoints as $endpoint) {
             for ($i = 0; $i < 3; $i++) {
                 $start = microtime(true);
-                makeRequest('GET', $baseUrl . $endpoint, [], $token);
+                makeRequest('GET', $baseUrl.$endpoint, [], $token);
                 $end = microtime(true);
                 $times[] = ($end - $start) * 1000;
             }
         }
 
         $avgTime = array_sum($times) / count($times);
-        echo "  📊 Average response time: " . round($avgTime, 2) . "ms\n";
+        echo '  📊 Average response time: '.round($avgTime, 2)."ms\n";
 
         $results['Performance <200ms'] = $avgTime < 200;
         if ($avgTime < 200) {
@@ -142,7 +145,7 @@ function testAllFunctionality($baseUrl, $token)
             echo "  ❌ Performance target not met (target: <200ms)\n";
         }
     } catch (Exception $e) {
-        echo "  ❌ Performance test failed: " . $e->getMessage() . "\n";
+        echo '  ❌ Performance test failed: '.$e->getMessage()."\n";
         $results['Performance <200ms'] = false;
     }
 
@@ -153,14 +156,14 @@ function testAllFunctionality($baseUrl, $token)
         file_put_contents($testFile, 'Test file content for upload verification');
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $baseUrl . '/api/v1/files/avatar');
+        curl_setopt($ch, CURLOPT_URL, $baseUrl.'/api/v1/files/avatar');
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, [
-            'avatar' => new CURLFile($testFile, 'image/jpeg', 'test.jpg')
+            'avatar' => new CURLFile($testFile, 'image/jpeg', 'test.jpg'),
         ]);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $token,
-            'Accept: application/json'
+            'Authorization: Bearer '.$token,
+            'Accept: application/json',
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -178,7 +181,7 @@ function testAllFunctionality($baseUrl, $token)
             echo "  Response: $response\n";
         }
     } catch (Exception $e) {
-        echo "  ❌ File upload error: " . $e->getMessage() . "\n";
+        echo '  ❌ File upload error: '.$e->getMessage()."\n";
         $results['File Upload'] = false;
     }
 
@@ -186,15 +189,15 @@ function testAllFunctionality($baseUrl, $token)
     echo "\n⚡ Testing Real-time Features...\n";
     try {
         // Test notification endpoints
-        $notifResponse = makeRequest('GET', $baseUrl . '/api/v1/notifications', [], $token);
+        $notifResponse = makeRequest('GET', $baseUrl.'/api/v1/notifications', [], $token);
 
-        // Test forum endpoints  
-        $forumResponse = makeRequest('GET', $baseUrl . '/api/v1/forum', [], $token);
+        // Test forum endpoints
+        $forumResponse = makeRequest('GET', $baseUrl.'/api/v1/forum', [], $token);
 
         echo "  ✅ Real-time endpoints accessible\n";
         $results['Real-time Features'] = true;
     } catch (Exception $e) {
-        echo "  ❌ Real-time features failed: " . $e->getMessage() . "\n";
+        echo '  ❌ Real-time features failed: '.$e->getMessage()."\n";
         $results['Real-time Features'] = false;
     }
 
@@ -203,7 +206,7 @@ function testAllFunctionality($baseUrl, $token)
     try {
         // Test protected endpoint without token
         try {
-            makeRequest('GET', $baseUrl . '/api/v1/reports', [], null);
+            makeRequest('GET', $baseUrl.'/api/v1/reports', [], null);
             echo "  ❌ Security failure: Protected endpoint accessible without token\n";
             $results['Security Standards'] = false;
         } catch (Exception $e) {
@@ -215,7 +218,7 @@ function testAllFunctionality($baseUrl, $token)
             }
         }
     } catch (Exception $e) {
-        echo "  ❌ Security test failed: " . $e->getMessage() . "\n";
+        echo '  ❌ Security test failed: '.$e->getMessage()."\n";
         $results['Security Standards'] = false;
     }
 
@@ -232,7 +235,7 @@ function makeRequest($method, $url, $data = [], $token = null)
 
     $headers = ['Accept: application/json'];
     if ($token) {
-        $headers[] = 'Authorization: Bearer ' . $token;
+        $headers[] = 'Authorization: Bearer '.$token;
     }
 
     if ($method === 'POST' || $method === 'PUT') {
@@ -258,7 +261,7 @@ function makeRequest($method, $url, $data = [], $token = null)
 
     $decoded = json_decode($response, true);
     if ($httpCode >= 400) {
-        throw new Exception("HTTP $httpCode: " . ($decoded['message'] ?? $response));
+        throw new Exception("HTTP $httpCode: ".($decoded['message'] ?? $response));
     }
 
     return $decoded;

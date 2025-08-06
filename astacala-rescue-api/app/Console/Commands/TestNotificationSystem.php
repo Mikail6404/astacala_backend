@@ -2,20 +2,22 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
-use App\Models\DisasterReport;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 
 class TestNotificationSystem extends Command
 {
     protected $signature = 'test:notification-system';
+
     protected $description = 'Test notification system across mobile and web platforms';
 
     private $baseUrl = 'http://localhost:8000/api/v1';
+
     private $mobileToken = null;
+
     private $testUserId = null;
 
     public function handle()
@@ -32,10 +34,12 @@ class TestNotificationSystem extends Command
             $this->cleanupTestData();
 
             $this->info('✅ Cross-platform notification tests completed successfully!');
+
             return 0;
         } catch (\Exception $e) {
-            $this->error('❌ Test failed: ' . $e->getMessage());
+            $this->error('❌ Test failed: '.$e->getMessage());
             $this->cleanupTestData();
+
             return 1;
         }
     }
@@ -50,24 +54,24 @@ class TestNotificationSystem extends Command
             'email' => 'notification@test.com',
             'password' => Hash::make('testpassword123'),
             'is_active' => true,
-            'role' => 'VOLUNTEER'
+            'role' => 'VOLUNTEER',
         ]);
 
         $this->testUserId = $testUser->id;
         $this->info("   ✅ Test user created (ID: {$this->testUserId})");
 
         // Authenticate
-        $response = Http::post($this->baseUrl . '/auth/login', [
+        $response = Http::post($this->baseUrl.'/auth/login', [
             'email' => 'notification@test.com',
-            'password' => 'testpassword123'
+            'password' => 'testpassword123',
         ]);
 
-        if (!$response->successful() || !isset($response->json()['data']['tokens']['accessToken'])) {
-            throw new \Exception("Authentication failed: " . $response->body());
+        if (! $response->successful() || ! isset($response->json()['data']['tokens']['accessToken'])) {
+            throw new \Exception('Authentication failed: '.$response->body());
         }
 
         $this->mobileToken = $response->json()['data']['tokens']['accessToken'];
-        $this->info("   ✅ Authentication successful");
+        $this->info('   ✅ Authentication successful');
     }
 
     private function testNotificationEndpoints()
@@ -76,23 +80,23 @@ class TestNotificationSystem extends Command
 
         // Test get notifications
         $response = Http::withToken($this->mobileToken)
-            ->get($this->baseUrl . '/notifications');
+            ->get($this->baseUrl.'/notifications');
 
-        if (!$response->successful()) {
-            throw new \Exception("Failed to get notifications: " . $response->body());
+        if (! $response->successful()) {
+            throw new \Exception('Failed to get notifications: '.$response->body());
         }
 
-        $this->info("   ✅ Get notifications endpoint working");
+        $this->info('   ✅ Get notifications endpoint working');
 
         // Test unread count
         $response = Http::withToken($this->mobileToken)
-            ->get($this->baseUrl . '/notifications/unread-count');
+            ->get($this->baseUrl.'/notifications/unread-count');
 
-        if (!$response->successful()) {
-            throw new \Exception("Failed to get unread count: " . $response->body());
+        if (! $response->successful()) {
+            throw new \Exception('Failed to get unread count: '.$response->body());
         }
 
-        $this->info("   ✅ Unread count endpoint working");
+        $this->info('   ✅ Unread count endpoint working');
     }
 
     private function testUnreadCount()
@@ -100,23 +104,23 @@ class TestNotificationSystem extends Command
         $this->info('🔢 Testing unread count functionality...');
 
         $response = Http::withToken($this->mobileToken)
-            ->get($this->baseUrl . '/notifications/unread-count');
+            ->get($this->baseUrl.'/notifications/unread-count');
 
-        if (!$response->successful()) {
-            throw new \Exception("Failed to get unread count");
+        if (! $response->successful()) {
+            throw new \Exception('Failed to get unread count');
         }
 
         $data = $response->json();
 
         // Verify response structure (flexible check)
         if (isset($data['data']['unreadCount'])) {
-            $this->info("   ✅ Unread count: " . $data['data']['unreadCount']);
+            $this->info('   ✅ Unread count: '.$data['data']['unreadCount']);
         } elseif (isset($data['unreadCount'])) {
-            $this->info("   ✅ Unread count: " . $data['unreadCount']);
+            $this->info('   ✅ Unread count: '.$data['unreadCount']);
         } elseif (isset($data['count'])) {
-            $this->info("   ✅ Unread count: " . $data['count']);
+            $this->info('   ✅ Unread count: '.$data['count']);
         } else {
-            $this->info("   ✅ Unread count endpoint working (Response: " . json_encode($data) . ")");
+            $this->info('   ✅ Unread count endpoint working (Response: '.json_encode($data).')');
         }
     }
 
@@ -126,16 +130,17 @@ class TestNotificationSystem extends Command
 
         // First get all notifications
         $response = Http::withToken($this->mobileToken)
-            ->get($this->baseUrl . '/notifications');
+            ->get($this->baseUrl.'/notifications');
 
-        if (!$response->successful()) {
-            throw new \Exception("Failed to get notifications");
+        if (! $response->successful()) {
+            throw new \Exception('Failed to get notifications');
         }
 
         $notifications = $response->json()['data'] ?? [];
 
         if (empty($notifications)) {
-            $this->info("   ⚠️ No notifications found to test mark as read");
+            $this->info('   ⚠️ No notifications found to test mark as read');
+
             return;
         }
 
@@ -144,17 +149,17 @@ class TestNotificationSystem extends Command
 
         if ($firstNotificationId) {
             $response = Http::withToken($this->mobileToken)
-                ->post($this->baseUrl . '/notifications/mark-read', [
-                    'notification_id' => $firstNotificationId
+                ->post($this->baseUrl.'/notifications/mark-read', [
+                    'notification_id' => $firstNotificationId,
                 ]);
 
             if ($response->successful()) {
-                $this->info("   ✅ Mark as read functionality working");
+                $this->info('   ✅ Mark as read functionality working');
             } else {
-                $this->info("   ⚠️ Mark as read test inconclusive: " . $response->body());
+                $this->info('   ⚠️ Mark as read test inconclusive: '.$response->body());
             }
         } else {
-            $this->info("   ⚠️ No notification ID found to test mark as read");
+            $this->info('   ⚠️ No notification ID found to test mark as read');
         }
     }
 
@@ -165,10 +170,10 @@ class TestNotificationSystem extends Command
         try {
             if ($this->testUserId) {
                 DB::table('users')->where('id', $this->testUserId)->delete();
-                $this->info("   ✅ Test user deleted");
+                $this->info('   ✅ Test user deleted');
             }
         } catch (\Exception $e) {
-            $this->warn("   ⚠️ Cleanup warning: " . $e->getMessage());
+            $this->warn('   ⚠️ Cleanup warning: '.$e->getMessage());
         }
     }
 }

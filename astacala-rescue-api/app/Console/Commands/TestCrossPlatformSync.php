@@ -2,21 +2,24 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
-use App\Models\DisasterReport;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 
 class TestCrossPlatformSync extends Command
 {
     protected $signature = 'test:cross-platform-sync';
+
     protected $description = 'Test cross-platform data synchronization between mobile and web';
 
     private $baseUrl = 'http://localhost:8000/api/v1';
+
     private $mobileToken = null;
+
     private $testUserId = null;
+
     private $testReportId = null;
 
     public function handle()
@@ -33,10 +36,12 @@ class TestCrossPlatformSync extends Command
             $this->cleanupTestData();
 
             $this->info('✅ Cross-platform synchronization tests completed successfully!');
+
             return 0;
         } catch (\Exception $e) {
-            $this->error('❌ Test failed: ' . $e->getMessage());
+            $this->error('❌ Test failed: '.$e->getMessage());
             $this->cleanupTestData();
+
             return 1;
         }
     }
@@ -51,7 +56,7 @@ class TestCrossPlatformSync extends Command
             'email' => 'crossplatform@test.com',
             'password' => Hash::make('testpassword123'),
             'is_active' => true,
-            'role' => 'VOLUNTEER'
+            'role' => 'VOLUNTEER',
         ]);
 
         $this->testUserId = $testUser->id;
@@ -63,32 +68,32 @@ class TestCrossPlatformSync extends Command
         $this->info('🔐 Testing cross-platform authentication...');
 
         // Authenticate via mobile API
-        $response = Http::post($this->baseUrl . '/auth/login', [
+        $response = Http::post($this->baseUrl.'/auth/login', [
             'email' => 'crossplatform@test.com',
-            'password' => 'testpassword123'
+            'password' => 'testpassword123',
         ]);
 
-        if (!$response->successful() || !isset($response->json()['data']['tokens']['accessToken'])) {
-            throw new \Exception("Mobile authentication failed: " . $response->body());
+        if (! $response->successful() || ! isset($response->json()['data']['tokens']['accessToken'])) {
+            throw new \Exception('Mobile authentication failed: '.$response->body());
         }
 
         $this->mobileToken = $response->json()['data']['tokens']['accessToken'];
-        $this->info("   ✅ Mobile authentication successful");
+        $this->info('   ✅ Mobile authentication successful');
 
         // Validate token across platforms
         $profileResponse = Http::withToken($this->mobileToken)
-            ->get($this->baseUrl . '/auth/me');
+            ->get($this->baseUrl.'/auth/me');
 
-        if (!$profileResponse->successful()) {
-            throw new \Exception("Token validation failed across platforms: " . $profileResponse->body());
+        if (! $profileResponse->successful()) {
+            throw new \Exception('Token validation failed across platforms: '.$profileResponse->body());
         }
 
         $profileData = $profileResponse->json();
-        if (!isset($profileData['data']['id'])) {
-            throw new \Exception("Token validation failed - invalid response structure: " . $profileResponse->body());
+        if (! isset($profileData['data']['id'])) {
+            throw new \Exception('Token validation failed - invalid response structure: '.$profileResponse->body());
         }
 
-        $this->info("   ✅ Cross-platform token validation successful");
+        $this->info('   ✅ Cross-platform token validation successful');
     }
 
     private function testDataSynchronization()
@@ -104,14 +109,14 @@ class TestCrossPlatformSync extends Command
             'latitude' => -6.2088,
             'longitude' => 106.8456,
             'locationName' => 'Test Location',
-            'incidentTimestamp' => now()->toISOString()
+            'incidentTimestamp' => now()->toISOString(),
         ];
 
         $createResponse = Http::withToken($this->mobileToken)
-            ->post($this->baseUrl . '/reports', $reportData);
+            ->post($this->baseUrl.'/reports', $reportData);
 
-        if (!$createResponse->successful() || !isset($createResponse->json()['data']['reportId'])) {
-            throw new \Exception("Failed to create report via mobile: " . $createResponse->body());
+        if (! $createResponse->successful() || ! isset($createResponse->json()['data']['reportId'])) {
+            throw new \Exception('Failed to create report via mobile: '.$createResponse->body());
         }
 
         $this->testReportId = $createResponse->json()['data']['reportId'];
@@ -119,19 +124,19 @@ class TestCrossPlatformSync extends Command
 
         // Retrieve same report via web API simulation
         $retrieveResponse = Http::withToken($this->mobileToken)
-            ->get($this->baseUrl . "/reports/{$this->testReportId}");
+            ->get($this->baseUrl."/reports/{$this->testReportId}");
 
-        if (!$retrieveResponse->successful() || !isset($retrieveResponse->json()['data']['id'])) {
-            throw new \Exception("Failed to retrieve report via web: " . $retrieveResponse->body());
+        if (! $retrieveResponse->successful() || ! isset($retrieveResponse->json()['data']['id'])) {
+            throw new \Exception('Failed to retrieve report via web: '.$retrieveResponse->body());
         }
 
         // Verify data consistency
         $reportData = $retrieveResponse->json()['data'];
         if ($reportData['title'] !== 'Cross-Platform Test Report') {
-            throw new \Exception("Data inconsistency detected between platforms");
+            throw new \Exception('Data inconsistency detected between platforms');
         }
 
-        $this->info("   ✅ Data consistency verified between platforms");
+        $this->info('   ✅ Data consistency verified between platforms');
     }
 
     private function testRealTimeUpdates()
@@ -140,32 +145,32 @@ class TestCrossPlatformSync extends Command
 
         // Update report via mobile
         $updateData = [
-            'status' => 'RESOLVED'
+            'status' => 'RESOLVED',
         ];
 
         $updateResponse = Http::withToken($this->mobileToken)
-            ->put($this->baseUrl . "/reports/{$this->testReportId}", $updateData);
+            ->put($this->baseUrl."/reports/{$this->testReportId}", $updateData);
 
-        if (!$updateResponse->successful() || !isset($updateResponse->json()['data'])) {
-            throw new \Exception("Failed to update report via mobile: " . $updateResponse->body());
+        if (! $updateResponse->successful() || ! isset($updateResponse->json()['data'])) {
+            throw new \Exception('Failed to update report via mobile: '.$updateResponse->body());
         }
 
-        $this->info("   ✅ Report updated via mobile");
+        $this->info('   ✅ Report updated via mobile');
 
         // Verify update is immediately visible via web
         $verifyResponse = Http::withToken($this->mobileToken)
-            ->get($this->baseUrl . "/reports/{$this->testReportId}");
+            ->get($this->baseUrl."/reports/{$this->testReportId}");
 
-        if (!$verifyResponse->successful()) {
-            throw new \Exception("Failed to verify update: " . $verifyResponse->body());
+        if (! $verifyResponse->successful()) {
+            throw new \Exception('Failed to verify update: '.$verifyResponse->body());
         }
 
         $reportData = $verifyResponse->json()['data'];
         if ($reportData['status'] !== 'RESOLVED') {
-            throw new \Exception("Real-time update synchronization failed - status not updated");
+            throw new \Exception('Real-time update synchronization failed - status not updated');
         }
 
-        $this->info("   ✅ Real-time synchronization verified");
+        $this->info('   ✅ Real-time synchronization verified');
     }
 
     private function cleanupTestData()
@@ -175,15 +180,15 @@ class TestCrossPlatformSync extends Command
         try {
             if ($this->testReportId) {
                 DB::table('disaster_reports')->where('id', $this->testReportId)->delete();
-                $this->info("   ✅ Test report deleted");
+                $this->info('   ✅ Test report deleted');
             }
 
             if ($this->testUserId) {
                 DB::table('users')->where('id', $this->testUserId)->delete();
-                $this->info("   ✅ Test user deleted");
+                $this->info('   ✅ Test user deleted');
             }
         } catch (\Exception $e) {
-            $this->warn("   ⚠️ Cleanup warning: " . $e->getMessage());
+            $this->warn('   ⚠️ Cleanup warning: '.$e->getMessage());
         }
     }
 }

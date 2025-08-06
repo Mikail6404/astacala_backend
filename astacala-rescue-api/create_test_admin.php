@@ -8,7 +8,7 @@ $dotenv->load();
 
 // Setup database connection
 $pdo = new PDO(
-    "mysql:host=" . $_ENV['DB_HOST'] . ";dbname=" . $_ENV['DB_DATABASE'],
+    'mysql:host='.$_ENV['DB_HOST'].';dbname='.$_ENV['DB_DATABASE'],
     $_ENV['DB_USERNAME'],
     $_ENV['DB_PASSWORD']
 );
@@ -19,7 +19,7 @@ $testEmail = 'test-admin@astacala.test';
 $testPassword = 'testpassword123';
 
 // Check if test admin already exists
-$stmt = $pdo->prepare("SELECT id, email FROM users WHERE email = ?");
+$stmt = $pdo->prepare('SELECT id, email FROM users WHERE email = ?');
 $stmt->execute([$testEmail]);
 $existingUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -29,20 +29,20 @@ if ($existingUser) {
 
     // Update password
     $hashedPassword = password_hash($testPassword, PASSWORD_DEFAULT);
-    $updateStmt = $pdo->prepare("UPDATE users SET password = ? WHERE email = ?");
+    $updateStmt = $pdo->prepare('UPDATE users SET password = ? WHERE email = ?');
     $updateStmt->execute([$hashedPassword, $testEmail]);
     echo "✅ Password updated successfully\n";
 } else {
     // Create new test admin
     $hashedPassword = password_hash($testPassword, PASSWORD_DEFAULT);
 
-    $insertStmt = $pdo->prepare("
+    $insertStmt = $pdo->prepare('
         INSERT INTO users (
             name, email, password, role, is_active, 
             phone, birth_date, place_of_birth, member_number,
             organization, email_verified_at, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ");
+    ');
 
     $now = date('Y-m-d H:i:s');
 
@@ -59,7 +59,7 @@ if ($existingUser) {
         'Test Organization',
         $now,
         $now,
-        $now
+        $now,
     ]);
 
     $newUserId = $pdo->lastInsertId();
@@ -74,7 +74,7 @@ echo "\n=== TESTING LOGIN WITH NEW CREDENTIALS ===\n";
 
 $loginData = [
     'email' => $testEmail,
-    'password' => $testPassword
+    'password' => $testPassword,
 ];
 
 $curl = curl_init();
@@ -85,7 +85,7 @@ curl_setopt_array($curl, [
     CURLOPT_POSTFIELDS => json_encode($loginData),
     CURLOPT_HTTPHEADER => [
         'Content-Type: application/json',
-        'Accept: application/json'
+        'Accept: application/json',
     ],
 ]);
 
@@ -100,6 +100,6 @@ if ($httpCode === 200) {
     $loginResponse = json_decode($response, true);
     if (isset($loginResponse['access_token'])) {
         echo "\n✅ Authentication successful!\n";
-        echo "Token: " . substr($loginResponse['access_token'], 0, 50) . "...\n";
+        echo 'Token: '.substr($loginResponse['access_token'], 0, 50)."...\n";
     }
 }

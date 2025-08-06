@@ -2,17 +2,18 @@
 
 namespace Tests\Unit\Middleware;
 
-use Tests\TestCase;
+use App\Http\Middleware\ApiRequestLoggingMiddleware;
+use App\Services\SuspiciousActivityMonitoringService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Log;
-use App\Http\Middleware\ApiRequestLoggingMiddleware;
-use App\Services\SuspiciousActivityMonitoringService;
 use Mockery;
+use Tests\TestCase;
 
 class ApiRequestLoggingMiddlewareTest extends TestCase
 {
     protected $middleware;
+
     protected $securityMonitor;
 
     protected function setUp(): void
@@ -81,7 +82,7 @@ class ApiRequestLoggingMiddlewareTest extends TestCase
         $request->merge([
             'authenticated_as' => 'user',
             'user_type' => 'mobile',
-            'user_id' => 123
+            'user_id' => 123,
         ]);
 
         $this->middleware->handle($request, function ($req) {
@@ -103,7 +104,7 @@ class ApiRequestLoggingMiddlewareTest extends TestCase
         Log::shouldReceive('info')
             ->once()
             ->with('API Request', \Mockery::on(function ($data) {
-                return !isset($data['request_body']) ||
+                return ! isset($data['request_body']) ||
                     (isset($data['request_body']['password']) &&
                         $data['request_body']['password'] === '[REDACTED]');
             }));
@@ -115,7 +116,7 @@ class ApiRequestLoggingMiddlewareTest extends TestCase
         $request = Request::create('/api/some-endpoint', 'POST', [
             'username' => 'testuser',
             'password' => 'secret123',
-            'other_field' => 'value'
+            'other_field' => 'value',
         ]);
 
         $this->middleware->handle($request, function ($req) {
@@ -137,7 +138,7 @@ class ApiRequestLoggingMiddlewareTest extends TestCase
         Log::shouldReceive('info')
             ->once()
             ->with('API Request', \Mockery::on(function ($data) {
-                return !isset($data['request_body']);
+                return ! isset($data['request_body']);
             }));
 
         Log::shouldReceive('info')
@@ -146,7 +147,7 @@ class ApiRequestLoggingMiddlewareTest extends TestCase
 
         $request = Request::create('/api/auth/login', 'POST', [
             'username' => 'testuser',
-            'password' => 'secret123'
+            'password' => 'secret123',
         ]);
 
         $this->middleware->handle($request, function ($req) {
@@ -289,7 +290,7 @@ class ApiRequestLoggingMiddlewareTest extends TestCase
             ->with('API Response', \Mockery::type('array'));
 
         $request = Request::create('/api/search', 'GET', [
-            'query' => "'; DROP TABLE users; --"
+            'query' => "'; DROP TABLE users; --",
         ]);
 
         $this->middleware->handle($request, function ($req) {
@@ -344,6 +345,7 @@ class ApiRequestLoggingMiddlewareTest extends TestCase
         $this->middleware->handle($request, function ($req) {
             // Simulate some processing time
             usleep(1000); // 1ms
+
             return new Response('Performance test', 200);
         });
     }
@@ -375,7 +377,7 @@ class ApiRequestLoggingMiddlewareTest extends TestCase
 
         $response = $this->middleware->handle($request, function ($req) {
             return new Response(json_encode(['result' => 'success']), 200, [
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
             ]);
         });
 

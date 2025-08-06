@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\DisasterReport;
 use App\Models\Notification;
 use App\Models\User;
-use App\Models\DisasterReport;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -19,7 +19,9 @@ class CrossPlatformNotificationService
     public function notifyReportVerified(DisasterReport $report): void
     {
         $user = $report->reporter;
-        if (!$user) return;
+        if (! $user) {
+            return;
+        }
 
         $notification = Notification::create([
             'user_id' => $user->id,
@@ -32,18 +34,18 @@ class CrossPlatformNotificationService
                 'report_id' => $report->id,
                 'report_title' => $report->title,
                 'verification_status' => $report->verification_status,
-                'platform' => 'mobile'
+                'platform' => 'mobile',
             ],
-            'is_read' => false
+            'is_read' => false,
         ]);
 
         // Send push notification to mobile
         $this->sendPushNotification($user, $notification);
 
-        Log::info("Report verification notification sent", [
+        Log::info('Report verification notification sent', [
             'user_id' => $user->id,
             'report_id' => $report->id,
-            'notification_id' => $notification->id
+            'notification_id' => $notification->id,
         ]);
     }
 
@@ -69,18 +71,18 @@ class CrossPlatformNotificationService
                     'location' => $report->location_name,
                     'severity' => $report->severity_level,
                     'reporter_name' => $report->reporter->name ?? 'Unknown',
-                    'platform' => 'web'
+                    'platform' => 'web',
                 ],
-                'is_read' => false
+                'is_read' => false,
             ]);
 
             // Send web notification (could be WebSocket, email, etc.)
             $this->sendWebNotification($admin, $notification);
         }
 
-        Log::info("New report notifications sent to admins", [
+        Log::info('New report notifications sent to admins', [
             'report_id' => $report->id,
-            'admin_count' => $admins->count()
+            'admin_count' => $admins->count(),
         ]);
     }
 
@@ -103,18 +105,18 @@ class CrossPlatformNotificationService
                 'data' => [
                     'publication_id' => $publication->id,
                     'publication_title' => $publication->title,
-                    'platform' => 'mobile'
+                    'platform' => 'mobile',
                 ],
-                'is_read' => false
+                'is_read' => false,
             ]);
 
             // Send push notification to mobile
             $this->sendPushNotification($volunteer, $notification);
         }
 
-        Log::info("Field update notifications sent to volunteers", [
+        Log::info('Field update notifications sent to volunteers', [
             'publication_id' => $publication->id,
-            'volunteer_count' => $volunteers->count()
+            'volunteer_count' => $volunteers->count(),
         ]);
     }
 
@@ -125,11 +127,11 @@ class CrossPlatformNotificationService
     {
         // Integration with Firebase Cloud Messaging or similar
         // For now, we'll log the notification
-        Log::info("Push notification queued for mobile user", [
+        Log::info('Push notification queued for mobile user', [
             'user_id' => $user->id,
             'notification_id' => $notification->id,
             'title' => $notification->title,
-            'message' => $notification->message
+            'message' => $notification->message,
         ]);
 
         // TODO: Implement actual push notification sending
@@ -143,11 +145,11 @@ class CrossPlatformNotificationService
     private function sendWebNotification(User $admin, Notification $notification): void
     {
         // Integration with WebSocket or Server-Sent Events
-        Log::info("Web notification queued for admin user", [
+        Log::info('Web notification queued for admin user', [
             'admin_id' => $admin->id,
             'notification_id' => $notification->id,
             'title' => $notification->title,
-            'message' => $notification->message
+            'message' => $notification->message,
         ]);
 
         // TODO: Implement real-time web notification
@@ -177,7 +179,7 @@ class CrossPlatformNotificationService
                 'is_read' => $notification->is_read,
                 'data' => $notification->data,
                 'created_at' => $notification->created_at->toISOString(),
-                'formatted_time' => $notification->created_at->diffForHumans()
+                'formatted_time' => $notification->created_at->diffForHumans(),
             ];
         })->toArray();
     }
@@ -194,13 +196,13 @@ class CrossPlatformNotificationService
         if ($notification) {
             $notification->update([
                 'is_read' => true,
-                'read_at' => now()
+                'read_at' => now(),
             ]);
 
-            Log::info("Notification marked as read", [
+            Log::info('Notification marked as read', [
                 'notification_id' => $notificationId,
                 'user_id' => $userId,
-                'platform' => $notification->data['platform'] ?? 'unknown'
+                'platform' => $notification->data['platform'] ?? 'unknown',
             ]);
 
             return true;
@@ -212,7 +214,7 @@ class CrossPlatformNotificationService
     /**
      * Get unread notification count by platform
      */
-    public function getUnreadCount(User $user, string $platform = null): int
+    public function getUnreadCount(User $user, ?string $platform = null): int
     {
         $query = Notification::where(function ($query) use ($user) {
             $query->where('user_id', $user->id)
@@ -236,7 +238,7 @@ class CrossPlatformNotificationService
         foreach ($allUsers as $user) {
             $platformData = array_merge($data, [
                 'platform' => $user->role === 'ADMIN' ? 'web' : 'mobile',
-                'urgent' => true
+                'urgent' => true,
             ]);
 
             $notification = Notification::create([
@@ -247,7 +249,7 @@ class CrossPlatformNotificationService
                 'type' => 'urgent_system',
                 'priority' => 'HIGH',
                 'data' => $platformData,
-                'is_read' => false
+                'is_read' => false,
             ]);
 
             // Send to appropriate platform
@@ -258,9 +260,9 @@ class CrossPlatformNotificationService
             }
         }
 
-        Log::info("Urgent notification sent to all users", [
+        Log::info('Urgent notification sent to all users', [
             'title' => $title,
-            'user_count' => $allUsers->count()
+            'user_count' => $allUsers->count(),
         ]);
     }
 }

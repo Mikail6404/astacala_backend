@@ -6,7 +6,6 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 echo "=== POPULATING BACKEND DATABASE WITH SAMPLE DATA ===\n\n";
 
@@ -39,7 +38,7 @@ try {
             'birth_date' => $profileData['birth_date'],
             'organization' => $profileData['organization'],
             'phone' => $profileData['phone'],
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $updatedCount++;
@@ -57,17 +56,17 @@ try {
     foreach ($reports as $index => $report) {
         $personnelCount = rand(5, 25);
         $casualtyCount = rand(0, 15);
-        $contactPhone = '+62821' . sprintf('%06d', rand(100000, 999999));
-        $coordinateString = $report->latitude . ', ' . $report->longitude;
+        $contactPhone = '+62821'.sprintf('%06d', rand(100000, 999999));
+        $coordinateString = $report->latitude.', '.$report->longitude;
 
         DB::table('disaster_reports')->where('id', $report->id)->update([
             'personnel_count' => $personnelCount,
             'casualty_count' => $casualtyCount,
             'contact_phone' => $contactPhone,
             'coordinate_string' => $coordinateString,
-            'brief_info' => substr($report->description, 0, 100) . '...',
+            'brief_info' => substr($report->description, 0, 100).'...',
             'scale_assessment' => 'MEDIUM',
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         $reportUpdatedCount++;
@@ -112,20 +111,20 @@ try {
                     'status' => 'published',
                     'author_id' => $adminUsers->random(),
                     'published_at' => now(),
-                ]
+                ],
             ];
 
             foreach ($samplePublications as $pub) {
                 DB::table('publications')->insert(array_merge($pub, [
                     'created_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]));
                 echo "   ✅ Created publication: {$pub['title']}\n";
             }
         }
     }
 
-    echo "   📊 Publications in database: " . DB::table('publications')->count() . "\n\n";
+    echo '   📊 Publications in database: '.DB::table('publications')->count()."\n\n";
 
     echo "🔄 Step 4: Adding sample notifications...\n";
 
@@ -148,26 +147,26 @@ try {
                     'related_report_id' => $reports->count() > 0 ? $reports->random() : null,
                     'is_read' => rand(0, 1),
                     'created_at' => now()->subDays(rand(1, 7)),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
             }
             echo "   ✅ Created 5 sample notifications\n";
         }
     }
 
-    echo "   📊 Notifications in database: " . DB::table('notifications')->count() . "\n\n";
+    echo '   📊 Notifications in database: '.DB::table('notifications')->count()."\n\n";
 
     echo "✅ Sample data population complete!\n\n";
 
     // Summary
     echo "📊 FINAL DATABASE SUMMARY:\n";
-    echo "   Users: " . DB::table('users')->count() . " (with profile data)\n";
-    echo "   Disaster Reports: " . DB::table('disaster_reports')->count() . " (with contact/personnel data)\n";
-    echo "   Publications: " . DB::table('publications')->count() . " (with author relationships)\n";
-    echo "   Notifications: " . DB::table('notifications')->count() . " (with location data)\n";
+    echo '   Users: '.DB::table('users')->count()." (with profile data)\n";
+    echo '   Disaster Reports: '.DB::table('disaster_reports')->count()." (with contact/personnel data)\n";
+    echo '   Publications: '.DB::table('publications')->count()." (with author relationships)\n";
+    echo '   Notifications: '.DB::table('notifications')->count()." (with location data)\n";
 } catch (Exception $e) {
-    echo "❌ Error: " . $e->getMessage() . "\n";
-    echo "Stack trace: " . $e->getTraceAsString() . "\n";
+    echo '❌ Error: '.$e->getMessage()."\n";
+    echo 'Stack trace: '.$e->getTraceAsString()."\n";
 }
 
 echo "\n=== SAMPLE DATA POPULATION COMPLETE ===\n";

@@ -15,7 +15,7 @@ class TestUserSeeder extends Seeder
     {
         // Create test user for mobile testing
         User::firstOrCreate([
-            'email' => 'test@astacala.com'
+            'email' => 'test@astacala.com',
         ], [
             'name' => 'Test User Mobile',
             'password' => Hash::make('password123'),
@@ -26,7 +26,7 @@ class TestUserSeeder extends Seeder
 
         // Create admin test user
         User::firstOrCreate([
-            'email' => 'admin@astacala.com'
+            'email' => 'admin@astacala.com',
         ], [
             'name' => 'Admin Test User',
             'password' => Hash::make('admin123'),

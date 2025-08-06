@@ -4,11 +4,11 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Publication;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 class PublicationController extends Controller
 {
@@ -54,13 +54,13 @@ class PublicationController extends Controller
                     'per_page' => $publications->perPage(),
                     'current_page' => $publications->currentPage(),
                     'last_page' => $publications->lastPage(),
-                ]
+                ],
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to retrieve publications',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -84,18 +84,18 @@ class PublicationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Publication retrieved successfully',
-                'data' => $publication
+                'data' => $publication,
             ], Response::HTTP_OK);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Publication not found'
+                'message' => 'Publication not found',
             ], Response::HTTP_NOT_FOUND);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to retrieve publication',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -118,18 +118,18 @@ class PublicationController extends Controller
                 'related_report_ids' => 'nullable|array',
                 'related_report_ids.*' => 'exists:disaster_reports,id',
                 'publish_at' => 'nullable|date|after:now',
-                'meta_description' => 'nullable|string|max:160'
+                'meta_description' => 'nullable|string|max:160',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
-            $publication = new Publication();
+            $publication = new Publication;
             $publication->title = $request->input('title');
             $publication->content = $request->input('content');
             $publication->type = $request->input('type');
@@ -157,13 +157,13 @@ class PublicationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Publication created successfully',
-                'data' => $publication->load(['author'])
+                'data' => $publication->load(['author']),
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to create publication',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -188,25 +188,39 @@ class PublicationController extends Controller
                 'related_report_ids' => 'nullable|array',
                 'related_report_ids.*' => 'exists:disaster_reports,id',
                 'publish_at' => 'nullable|date',
-                'meta_description' => 'nullable|string|max:160'
+                'meta_description' => 'nullable|string|max:160',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
             // Update fields if provided
-            if ($request->has('title')) $publication->title = $request->input('title');
-            if ($request->has('content')) $publication->content = $request->input('content');
-            if ($request->has('type')) $publication->type = $request->input('type');
-            if ($request->has('category')) $publication->category = $request->input('category');
-            if ($request->has('tags')) $publication->tags = $request->input('tags');
-            if ($request->has('featured_image')) $publication->featured_image = $request->input('featured_image');
-            if ($request->has('meta_description')) $publication->meta_description = $request->input('meta_description');
+            if ($request->has('title')) {
+                $publication->title = $request->input('title');
+            }
+            if ($request->has('content')) {
+                $publication->content = $request->input('content');
+            }
+            if ($request->has('type')) {
+                $publication->type = $request->input('type');
+            }
+            if ($request->has('category')) {
+                $publication->category = $request->input('category');
+            }
+            if ($request->has('tags')) {
+                $publication->tags = $request->input('tags');
+            }
+            if ($request->has('featured_image')) {
+                $publication->featured_image = $request->input('featured_image');
+            }
+            if ($request->has('meta_description')) {
+                $publication->meta_description = $request->input('meta_description');
+            }
 
             // Handle status change
             if ($request->has('status')) {
@@ -233,18 +247,18 @@ class PublicationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Publication updated successfully',
-                'data' => $publication->load(['author'])
+                'data' => $publication->load(['author']),
             ], Response::HTTP_OK);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Publication not found'
+                'message' => 'Publication not found',
             ], Response::HTTP_NOT_FOUND);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to update publication',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -266,18 +280,18 @@ class PublicationController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Publication archived successfully'
+                'message' => 'Publication archived successfully',
             ], Response::HTTP_OK);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Publication not found'
+                'message' => 'Publication not found',
             ], Response::HTTP_NOT_FOUND);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to archive publication',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -294,19 +308,19 @@ class PublicationController extends Controller
             if ($publication->status === 'published') {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Publication is already published'
+                    'message' => 'Publication is already published',
                 ], Response::HTTP_BAD_REQUEST);
             }
 
             $validator = Validator::make($request->all(), [
-                'publish_at' => 'nullable|date|after_or_equal:now'
+                'publish_at' => 'nullable|date|after_or_equal:now',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
@@ -320,18 +334,18 @@ class PublicationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Publication published successfully',
-                'data' => $publication->load(['author'])
+                'data' => $publication->load(['author']),
             ], Response::HTTP_OK);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Publication not found'
+                'message' => 'Publication not found',
             ], Response::HTTP_NOT_FOUND);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to publish publication',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }

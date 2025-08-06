@@ -2,12 +2,10 @@
 
 namespace App\Services;
 
-use App\Models\DisasterReport;
-use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use Carbon\Carbon;
 
 class DataValidationService
 {
@@ -31,7 +29,7 @@ class DataValidationService
         'personnel_count' => 'nullable|integer|min:0|max:1000',
         'contact_phone' => 'nullable|string|regex:/^[\+]?[0-9\s\-\(\)]+$/|max:20',
         'scale_assessment' => 'nullable|string|in:minor,moderate,major,catastrophic',
-        'verification_status' => 'nullable|in:unverified,verified,disputed,investigating'
+        'verification_status' => 'nullable|in:unverified,verified,disputed,investigating',
     ];
 
     /**
@@ -41,18 +39,18 @@ class DataValidationService
         'location_consistency' => [
             'latitude_longitude_match' => true,
             'location_name_coordinate_proximity' => true,
-            'address_coordinate_alignment' => true
+            'address_coordinate_alignment' => true,
         ],
         'severity_consistency' => [
             'casualty_severity_alignment' => true,
             'affected_severity_alignment' => true,
-            'scale_severity_alignment' => true
+            'scale_severity_alignment' => true,
         ],
         'timestamp_consistency' => [
             'incident_before_report' => true,
             'verification_after_incident' => true,
-            'modification_tracking' => true
-        ]
+            'modification_tracking' => true,
+        ],
     ];
 
     /**
@@ -80,7 +78,7 @@ class DataValidationService
             'disaster_type.in' => 'Invalid disaster type selected',
             'severity_level.in' => 'Invalid severity level selected',
             'status.in' => 'Invalid status selected',
-            'contact_phone.regex' => 'Phone number format is invalid'
+            'contact_phone.regex' => 'Phone number format is invalid',
         ]);
 
         // Custom validation rules
@@ -159,11 +157,11 @@ class DataValidationService
             'flood' => ['low', 'medium', 'high', 'critical'],
             'fire' => ['low', 'medium', 'high'],
             'drought' => ['low', 'medium', 'high'],
-            'landslide' => ['medium', 'high']
+            'landslide' => ['medium', 'high'],
         ];
 
         if (isset($typicalSeverities[$disasterType])) {
-            if (!in_array($severityLevel, $typicalSeverities[$disasterType])) {
+            if (! in_array($severityLevel, $typicalSeverities[$disasterType])) {
                 $validator->errors()->add(
                     'severity_level',
                     "Severity level '{$severityLevel}' is unusual for {$disasterType}. Please verify."
@@ -182,7 +180,7 @@ class DataValidationService
             'checks_performed' => [],
             'issues_found' => [],
             'recommendations' => [],
-            'overall_status' => 'healthy'
+            'overall_status' => 'healthy',
         ];
 
         // Check 1: Orphaned records
@@ -196,7 +194,7 @@ class DataValidationService
         // Check 2: Data consistency violations
         $consistencyIssues = $this->checkDataConsistency();
         $healthReport['checks_performed'][] = 'data_consistency';
-        if (!empty($consistencyIssues)) {
+        if (! empty($consistencyIssues)) {
             $healthReport['issues_found'] = array_merge($healthReport['issues_found'], $consistencyIssues);
             $healthReport['overall_status'] = 'issues_found';
         }
@@ -252,7 +250,7 @@ class DataValidationService
             'count' => $orphanedCount,
             'report_ids' => $orphanedIds,
             'description' => 'Reports with invalid user references',
-            'severity' => $orphanedCount > 0 ? 'medium' : 'none'
+            'severity' => $orphanedCount > 0 ? 'medium' : 'none',
         ];
     }
 
@@ -279,7 +277,7 @@ class DataValidationService
                 'type' => 'invalid_coordinates',
                 'count' => $invalidCoordinates,
                 'description' => 'Reports with invalid latitude/longitude values',
-                'severity' => 'high'
+                'severity' => 'high',
             ];
         }
 
@@ -298,7 +296,7 @@ class DataValidationService
                 'type' => 'severity_casualty_mismatch',
                 'count' => $severityMismatches,
                 'description' => 'Reports with inconsistent severity and casualty data',
-                'severity' => 'medium'
+                'severity' => 'medium',
             ];
         }
 
@@ -312,7 +310,7 @@ class DataValidationService
                 'type' => 'future_incidents',
                 'count' => $futureIncidents,
                 'description' => 'Reports with incident timestamps in the future',
-                'severity' => 'high'
+                'severity' => 'high',
             ];
         }
 
@@ -325,7 +323,7 @@ class DataValidationService
     protected function checkDuplicateReports()
     {
         // Find reports with similar coordinates (within 1km) and same disaster type
-        $duplicates = DB::select("
+        $duplicates = DB::select('
             SELECT 
                 r1.id as report1_id,
                 r2.id as report2_id,
@@ -340,14 +338,14 @@ class DataValidationService
             WHERE r1.disaster_type = r2.disaster_type
             AND ABS(TIMESTAMPDIFF(HOUR, r1.incident_timestamp, r2.incident_timestamp)) <= 24
             HAVING distance_km < 1
-        ");
+        ');
 
         return [
             'type' => 'duplicate_reports',
             'count' => count($duplicates),
             'duplicates' => $duplicates,
             'description' => 'Potentially duplicate reports within 1km and 24 hours',
-            'severity' => count($duplicates) > 0 ? 'medium' : 'none'
+            'severity' => count($duplicates) > 0 ? 'medium' : 'none',
         ];
     }
 
@@ -375,7 +373,7 @@ class DataValidationService
             'missing_versions' => $versionIssues,
             'high_versions' => $versionInconsistencies,
             'description' => 'Reports with version control issues',
-            'severity' => $totalIssues > 0 ? 'medium' : 'none'
+            'severity' => $totalIssues > 0 ? 'medium' : 'none',
         ];
     }
 
@@ -395,7 +393,7 @@ class DataValidationService
             'type' => 'missing_audit_trails',
             'count' => $reportsWithoutAudit,
             'description' => 'Recent modifications without corresponding audit trails',
-            'severity' => $reportsWithoutAudit > 0 ? 'high' : 'none'
+            'severity' => $reportsWithoutAudit > 0 ? 'high' : 'none',
         ];
     }
 
@@ -458,7 +456,7 @@ class DataValidationService
                 $fixedIssues[] = [
                     'type' => 'fixed_missing_versions',
                     'count' => $fixedVersions,
-                    'description' => 'Set default version (1) for reports missing version'
+                    'description' => 'Set default version (1) for reports missing version',
                 ];
             }
 
@@ -476,7 +474,7 @@ class DataValidationService
                     $fixedIssues[] = [
                         'type' => 'removed_test_report',
                         'report_id' => $report->id,
-                        'description' => "Removed test report with invalid coordinates: {$report->title}"
+                        'description' => "Removed test report with invalid coordinates: {$report->title}",
                     ];
                 }
             }
@@ -490,7 +488,7 @@ class DataValidationService
                 $fixedIssues[] = [
                     'type' => 'fixed_missing_last_modified',
                     'count' => $fixedTimestamps,
-                    'description' => 'Set last_modified_at from updated_at for reports'
+                    'description' => 'Set last_modified_at from updated_at for reports',
                 ];
             }
 
@@ -498,13 +496,13 @@ class DataValidationService
 
             Log::info('Data integrity auto-fix completed', [
                 'fixed_issues' => $fixedIssues,
-                'timestamp' => now()
+                'timestamp' => now(),
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Data integrity auto-fix failed', [
                 'error' => $e->getMessage(),
-                'timestamp' => now()
+                'timestamp' => now(),
             ]);
             throw $e;
         }
@@ -531,8 +529,8 @@ class DataValidationService
                 'critical_issues' => collect($healthCheck['issues_found'])->where('severity', 'high')->count(),
                 'medium_issues' => collect($healthCheck['issues_found'])->where('severity', 'medium')->count(),
                 'low_issues' => collect($healthCheck['issues_found'])->where('severity', 'low')->count(),
-                'recommendations_count' => count($healthCheck['recommendations'])
-            ]
+                'recommendations_count' => count($healthCheck['recommendations']),
+            ],
         ];
 
         // Log the report

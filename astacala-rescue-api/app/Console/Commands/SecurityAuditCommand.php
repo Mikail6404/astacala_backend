@@ -2,13 +2,11 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Artisan;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class SecurityAuditCommand extends Command
 {
@@ -55,6 +53,7 @@ class SecurityAuditCommand extends Command
         }
 
         $this->info('✅ Security audit completed');
+
         return 0;
     }
 
@@ -67,14 +66,14 @@ class SecurityAuditCommand extends Command
                 'failed_logins' => 0,
                 'suspicious_login_patterns' => [],
                 'rate_limit_violations' => 0,
-                'token_security_issues' => []
+                'token_security_issues' => [],
             ],
             'api_security' => [
                 'total_api_requests' => 0,
                 'blocked_requests' => 0,
                 'rate_limited_requests' => 0,
                 'suspicious_endpoints' => [],
-                'security_violations' => []
+                'security_violations' => [],
             ],
             'suspicious_activity' => [
                 'bot_activity' => 0,
@@ -82,35 +81,35 @@ class SecurityAuditCommand extends Command
                 'xss_attempts' => 0,
                 'csrf_violations' => 0,
                 'geographic_anomalies' => [],
-                'behavioral_anomalies' => []
+                'behavioral_anomalies' => [],
             ],
             'user_security' => [
                 'weak_passwords' => 0,
                 'unverified_accounts' => 0,
                 'inactive_accounts' => 0,
                 'suspicious_user_patterns' => [],
-                'privilege_escalation_attempts' => []
+                'privilege_escalation_attempts' => [],
             ],
             'system_config' => [
                 'middleware_status' => [],
                 'security_headers' => [],
                 'encryption_status' => null,
                 'session_security' => null,
-                'logging_status' => null
+                'logging_status' => null,
             ],
             'database_security' => [
                 'connection_security' => null,
                 'sensitive_data_exposure' => [],
                 'query_injection_risks' => [],
-                'backup_security' => null
+                'backup_security' => null,
             ],
             'summary' => [
                 'overall_security_score' => 0,
                 'critical_issues' => 0,
                 'warning_issues' => 0,
                 'info_issues' => 0,
-                'recommendations' => []
-            ]
+                'recommendations' => [],
+            ],
         ];
     }
 
@@ -151,7 +150,9 @@ class SecurityAuditCommand extends Command
         $suspiciousPatterns = [];
 
         foreach ($lines as $line) {
-            if (empty(trim($line))) continue;
+            if (empty(trim($line))) {
+                continue;
+            }
 
             // Parse log entry
             if (strpos($line, 'login') !== false) {
@@ -171,7 +172,7 @@ class SecurityAuditCommand extends Command
             // Look for suspicious patterns
             if (preg_match('/(\d+\.\d+\.\d+\.\d+).*?(failed|error|suspicious)/', $line, $matches)) {
                 $ip = $matches[1];
-                if (!isset($suspiciousPatterns[$ip])) {
+                if (! isset($suspiciousPatterns[$ip])) {
                     $suspiciousPatterns[$ip] = 0;
                 }
                 $suspiciousPatterns[$ip]++;
@@ -189,7 +190,7 @@ class SecurityAuditCommand extends Command
                 $this->auditResults['authentication']['suspicious_login_patterns'][] = [
                     'ip' => $ip,
                     'attempts' => $count,
-                    'severity' => $count >= 20 ? 'critical' : ($count >= 10 ? 'high' : 'medium')
+                    'severity' => $count >= 20 ? 'critical' : ($count >= 10 ? 'high' : 'medium'),
                 ];
             }
         }
@@ -212,7 +213,7 @@ class SecurityAuditCommand extends Command
 
             $this->line("   📈 Analyzed $newUsers new users, $unverifiedUsers unverified, $inactiveUsers inactive");
         } catch (\Exception $e) {
-            $this->warn("   ⚠️ Database analysis failed: " . $e->getMessage());
+            $this->warn('   ⚠️ Database analysis failed: '.$e->getMessage());
         }
     }
 
@@ -226,7 +227,7 @@ class SecurityAuditCommand extends Command
             $issues[] = [
                 'type' => 'weak_jwt_secret',
                 'severity' => 'critical',
-                'description' => 'JWT secret key is too weak or missing'
+                'description' => 'JWT secret key is too weak or missing',
             ];
         }
 
@@ -236,7 +237,7 @@ class SecurityAuditCommand extends Command
             $issues[] = [
                 'type' => 'insecure_session',
                 'severity' => 'high',
-                'description' => 'Session cookies not marked as secure in production'
+                'description' => 'Session cookies not marked as secure in production',
             ];
         }
 
@@ -244,7 +245,7 @@ class SecurityAuditCommand extends Command
             $issues[] = [
                 'type' => 'session_xss_risk',
                 'severity' => 'medium',
-                'description' => 'Session cookies accessible via JavaScript (XSS risk)'
+                'description' => 'Session cookies accessible via JavaScript (XSS risk)',
             ];
         }
 
@@ -253,7 +254,7 @@ class SecurityAuditCommand extends Command
         if (empty($issues)) {
             $this->line('   🔐 Token security configuration looks good');
         } else {
-            $this->warn('   ⚠️ Found ' . count($issues) . ' token security issues');
+            $this->warn('   ⚠️ Found '.count($issues).' token security issues');
         }
     }
 
@@ -286,7 +287,9 @@ class SecurityAuditCommand extends Command
         $suspiciousEndpoints = [];
 
         foreach ($lines as $line) {
-            if (empty(trim($line))) continue;
+            if (empty(trim($line))) {
+                continue;
+            }
 
             if (strpos($line, 'BLOCKED') !== false || strpos($line, 'blocked') !== false) {
                 $blockedRequests++;
@@ -299,7 +302,7 @@ class SecurityAuditCommand extends Command
             if (strpos($line, 'SUSPICIOUS') !== false || strpos($line, 'suspicious') !== false) {
                 if (preg_match('/endpoint:([^\s]+)/', $line, $matches)) {
                     $endpoint = $matches[1];
-                    if (!isset($suspiciousEndpoints[$endpoint])) {
+                    if (! isset($suspiciousEndpoints[$endpoint])) {
                         $suspiciousEndpoints[$endpoint] = 0;
                     }
                     $suspiciousEndpoints[$endpoint]++;
@@ -311,12 +314,12 @@ class SecurityAuditCommand extends Command
                 'SQL_INJECTION' => '/sql.*injection|union.*select|drop.*table/i',
                 'XSS_ATTEMPT' => '/<script|javascript:|onload=/i',
                 'CSRF_VIOLATION' => '/csrf.*mismatch|invalid.*csrf/i',
-                'BOT_ACTIVITY' => '/bot.*detected|automated.*request/i'
+                'BOT_ACTIVITY' => '/bot.*detected|automated.*request/i',
             ];
 
             foreach ($violationPatterns as $type => $pattern) {
                 if (preg_match($pattern, $line)) {
-                    if (!isset($securityViolations[$type])) {
+                    if (! isset($securityViolations[$type])) {
                         $securityViolations[$type] = 0;
                     }
                     $securityViolations[$type]++;
@@ -334,7 +337,7 @@ class SecurityAuditCommand extends Command
                 $this->auditResults['api_security']['suspicious_endpoints'][] = [
                     'endpoint' => $endpoint,
                     'incidents' => $count,
-                    'severity' => $count >= 10 ? 'high' : 'medium'
+                    'severity' => $count >= 10 ? 'high' : 'medium',
                 ];
             }
         }
@@ -349,10 +352,10 @@ class SecurityAuditCommand extends Command
             $blockedIPs = Cache::get('security:blocked_ips', []);
             $suspiciousActivity = Cache::get('security:suspicious_activity', []);
 
-            $this->line('   🗂️ Found ' . count($blockedIPs) . ' blocked IPs in cache');
-            $this->line('   🚨 Found ' . count($suspiciousActivity) . ' suspicious activities in cache');
+            $this->line('   🗂️ Found '.count($blockedIPs).' blocked IPs in cache');
+            $this->line('   🚨 Found '.count($suspiciousActivity).' suspicious activities in cache');
         } catch (\Exception $e) {
-            $this->warn('   ⚠️ Cache analysis failed: ' . $e->getMessage());
+            $this->warn('   ⚠️ Cache analysis failed: '.$e->getMessage());
         }
     }
 
@@ -366,7 +369,7 @@ class SecurityAuditCommand extends Command
                 'bot_activity' => rand(0, 5),
                 'sql_injection_attempts' => rand(0, 3),
                 'xss_attempts' => rand(0, 2),
-                'csrf_violations' => rand(0, 1)
+                'csrf_violations' => rand(0, 1),
             ];
 
             foreach ($suspiciousEvents as $type => $count) {
@@ -375,7 +378,7 @@ class SecurityAuditCommand extends Command
 
             $this->line('   📊 Suspicious activity analysis completed');
         } catch (\Exception $e) {
-            $this->warn('   ⚠️ Suspicious activity analysis failed: ' . $e->getMessage());
+            $this->warn('   ⚠️ Suspicious activity analysis failed: '.$e->getMessage());
         }
     }
 
@@ -399,7 +402,7 @@ class SecurityAuditCommand extends Command
 
             $this->line("   📊 User security: $unverifiedAccounts unverified, $inactiveAccounts inactive");
         } catch (\Exception $e) {
-            $this->warn('   ⚠️ User security analysis failed: ' . $e->getMessage());
+            $this->warn('   ⚠️ User security analysis failed: '.$e->getMessage());
         }
     }
 
@@ -412,7 +415,7 @@ class SecurityAuditCommand extends Command
             'rate_limiting' => class_exists('App\Http\Middleware\CrossPlatformRateLimitMiddleware'),
             'api_logging' => class_exists('App\Http\Middleware\ApiRequestLoggingMiddleware'),
             'dual_auth' => class_exists('App\Http\Middleware\DualAuthenticationMiddleware'),
-            'cors' => true // Assume configured
+            'cors' => true, // Assume configured
         ];
 
         // Check security headers (would need actual HTTP response analysis)
@@ -420,14 +423,14 @@ class SecurityAuditCommand extends Command
             'x_frame_options' => true,
             'x_content_type_options' => true,
             'x_xss_protection' => true,
-            'strict_transport_security' => app()->environment('production')
+            'strict_transport_security' => app()->environment('production'),
         ];
 
         // Check encryption status
-        $encryptionStatus = !empty(config('app.key')) && strlen(config('app.key')) >= 32;
+        $encryptionStatus = ! empty(config('app.key')) && strlen(config('app.key')) >= 32;
 
         // Check session security
-        $sessionSecurity = config('session.secure') || !app()->environment('production');
+        $sessionSecurity = config('session.secure') || ! app()->environment('production');
 
         // Check logging status
         $loggingStatus = config('logging.default') !== null;
@@ -437,7 +440,7 @@ class SecurityAuditCommand extends Command
             'security_headers' => $securityHeaders,
             'encryption_status' => $encryptionStatus,
             'session_security' => $sessionSecurity,
-            'logging_status' => $loggingStatus
+            'logging_status' => $loggingStatus,
         ];
 
         $middlewareCount = count(array_filter($middlewareStatus));
@@ -450,8 +453,8 @@ class SecurityAuditCommand extends Command
 
         try {
             // Check database connection security
-            $dbConfig = config('database.connections.' . config('database.default'));
-            $connectionSecurity = !empty($dbConfig['password']) && strlen($dbConfig['password']) >= 8;
+            $dbConfig = config('database.connections.'.config('database.default'));
+            $connectionSecurity = ! empty($dbConfig['password']) && strlen($dbConfig['password']) >= 8;
 
             // Check for sensitive data exposure (simplified)
             $sensitiveDataExposure = [];
@@ -466,12 +469,12 @@ class SecurityAuditCommand extends Command
                 'connection_security' => $connectionSecurity,
                 'sensitive_data_exposure' => $sensitiveDataExposure,
                 'query_injection_risks' => $queryInjectionRisks,
-                'backup_security' => $backupSecurity
+                'backup_security' => $backupSecurity,
             ];
 
             $this->line('   🗄️ Database security analysis completed');
         } catch (\Exception $e) {
-            $this->warn('   ⚠️ Database security analysis failed: ' . $e->getMessage());
+            $this->warn('   ⚠️ Database security analysis failed: '.$e->getMessage());
         }
     }
 
@@ -541,12 +544,12 @@ class SecurityAuditCommand extends Command
         // Deduct points for system configuration issues
         $middlewareStatus = $this->auditResults['system_config']['middleware_status'];
         $disabledMiddleware = count(array_filter($middlewareStatus, function ($status) {
-            return !$status;
+            return ! $status;
         }));
         $score -= $disabledMiddleware * 10;
         $warningIssues += $disabledMiddleware;
 
-        if (!$this->auditResults['system_config']['encryption_status']) {
+        if (! $this->auditResults['system_config']['encryption_status']) {
             $score -= 30;
             $criticalIssues++;
         }
@@ -559,7 +562,7 @@ class SecurityAuditCommand extends Command
             'critical_issues' => $criticalIssues,
             'warning_issues' => $warningIssues,
             'info_issues' => $infoIssues,
-            'recommendations' => []
+            'recommendations' => [],
         ];
     }
 
@@ -581,9 +584,9 @@ class SecurityAuditCommand extends Command
             $this->error('🔴 Critical security issues require immediate action');
         }
 
-        $this->line("Critical Issues: " . $summary['critical_issues']);
-        $this->line("Warning Issues: " . $summary['warning_issues']);
-        $this->line("Info Issues: " . $summary['info_issues']);
+        $this->line('Critical Issues: '.$summary['critical_issues']);
+        $this->line('Warning Issues: '.$summary['warning_issues']);
+        $this->line('Info Issues: '.$summary['info_issues']);
     }
 
     protected function displayDetailedFindings()
@@ -594,32 +597,32 @@ class SecurityAuditCommand extends Command
 
         // Authentication findings
         $auth = $this->auditResults['authentication'];
-        $this->line("📊 Authentication Security:");
-        $this->line("  • Login Attempts: " . $auth['total_login_attempts']);
-        $this->line("  • Successful: " . $auth['successful_logins']);
-        $this->line("  • Failed: " . $auth['failed_logins']);
-        $this->line("  • Rate Limit Violations: " . $auth['rate_limit_violations']);
-        $this->line("  • Token Security Issues: " . count($auth['token_security_issues']));
+        $this->line('📊 Authentication Security:');
+        $this->line('  • Login Attempts: '.$auth['total_login_attempts']);
+        $this->line('  • Successful: '.$auth['successful_logins']);
+        $this->line('  • Failed: '.$auth['failed_logins']);
+        $this->line('  • Rate Limit Violations: '.$auth['rate_limit_violations']);
+        $this->line('  • Token Security Issues: '.count($auth['token_security_issues']));
 
         // API Security findings
         $api = $this->auditResults['api_security'];
         $this->line("\n🛡️ API Security:");
-        $this->line("  • Blocked Requests: " . $api['blocked_requests']);
-        $this->line("  • Rate Limited: " . $api['rate_limited_requests']);
-        $this->line("  • Suspicious Endpoints: " . count($api['suspicious_endpoints']));
+        $this->line('  • Blocked Requests: '.$api['blocked_requests']);
+        $this->line('  • Rate Limited: '.$api['rate_limited_requests']);
+        $this->line('  • Suspicious Endpoints: '.count($api['suspicious_endpoints']));
 
         // User Security findings
         $users = $this->auditResults['user_security'];
         $this->line("\n👥 User Security:");
-        $this->line("  • Unverified Accounts: " . $users['unverified_accounts']);
-        $this->line("  • Inactive Accounts: " . $users['inactive_accounts']);
+        $this->line('  • Unverified Accounts: '.$users['unverified_accounts']);
+        $this->line('  • Inactive Accounts: '.$users['inactive_accounts']);
 
         // System Configuration findings
         $system = $this->auditResults['system_config'];
         $this->line("\n⚙️ System Configuration:");
-        $this->line("  • Encryption: " . ($system['encryption_status'] ? '✅' : '❌'));
-        $this->line("  • Session Security: " . ($system['session_security'] ? '✅' : '❌'));
-        $this->line("  • Logging: " . ($system['logging_status'] ? '✅' : '❌'));
+        $this->line('  • Encryption: '.($system['encryption_status'] ? '✅' : '❌'));
+        $this->line('  • Session Security: '.($system['session_security'] ? '✅' : '❌'));
+        $this->line('  • Logging: '.($system['logging_status'] ? '✅' : '❌'));
     }
 
     protected function displaySecurityRecommendations()
@@ -632,25 +635,25 @@ class SecurityAuditCommand extends Command
 
         // Check for critical issues and generate recommendations
         if ($this->auditResults['summary']['critical_issues'] > 0) {
-            $recommendations[] = "🔴 CRITICAL: Address all critical security issues immediately";
+            $recommendations[] = '🔴 CRITICAL: Address all critical security issues immediately';
         }
 
-        if (!$this->auditResults['system_config']['encryption_status']) {
-            $recommendations[] = "🔐 Enable proper encryption configuration";
+        if (! $this->auditResults['system_config']['encryption_status']) {
+            $recommendations[] = '🔐 Enable proper encryption configuration';
         }
 
         if ($this->auditResults['user_security']['unverified_accounts'] > 10) {
-            $recommendations[] = "📧 Implement email verification enforcement";
+            $recommendations[] = '📧 Implement email verification enforcement';
         }
 
         if ($this->auditResults['authentication']['rate_limit_violations'] > 100) {
-            $recommendations[] = "⏱️ Review and tighten rate limiting policies";
+            $recommendations[] = '⏱️ Review and tighten rate limiting policies';
         }
 
         if (empty($recommendations)) {
-            $recommendations[] = "✅ Security posture is good. Continue monitoring.";
-            $recommendations[] = "🔄 Regular security audits recommended";
-            $recommendations[] = "📚 Keep security documentation updated";
+            $recommendations[] = '✅ Security posture is good. Continue monitoring.';
+            $recommendations[] = '🔄 Regular security audits recommended';
+            $recommendations[] = '📚 Keep security documentation updated';
         }
 
         foreach ($recommendations as $recommendation) {
@@ -662,13 +665,13 @@ class SecurityAuditCommand extends Command
 
     protected function exportAuditResults()
     {
-        $filename = 'security_audit_' . date('Y-m-d_H-i-s') . '.json';
-        $path = storage_path('logs/' . $filename);
+        $filename = 'security_audit_'.date('Y-m-d_H-i-s').'.json';
+        $path = storage_path('logs/'.$filename);
 
         $exportData = [
             'audit_timestamp' => now()->toISOString(),
             'audit_duration_days' => $this->option('days'),
-            'results' => $this->auditResults
+            'results' => $this->auditResults,
         ];
 
         file_put_contents($path, json_encode($exportData, JSON_PRETTY_PRINT));

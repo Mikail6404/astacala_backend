@@ -2,13 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use App\Models\User;
-use Carbon\Carbon;
 
 class TestAuthenticationCommand extends Command
 {
@@ -40,8 +36,9 @@ class TestAuthenticationCommand extends Command
 
         $platform = $this->argument('platform');
 
-        if (!in_array($platform, ['mobile', 'web', 'both'])) {
+        if (! in_array($platform, ['mobile', 'web', 'both'])) {
             $this->error('Platform must be: mobile, web, or both');
+
             return 1;
         }
 
@@ -65,6 +62,7 @@ class TestAuthenticationCommand extends Command
 
         $this->newLine();
         $this->info('✅ Authentication testing completed');
+
         return 0;
     }
 
@@ -85,7 +83,7 @@ class TestAuthenticationCommand extends Command
             'login' => false,
             'authenticated_request' => false,
             'rate_limiting' => false,
-            'logout' => false
+            'logout' => false,
         ];
 
         // Test 1: Mobile Login
@@ -95,10 +93,11 @@ class TestAuthenticationCommand extends Command
         if ($loginResult['success']) {
             $results['login'] = true;
             $token = $loginResult['token'];
-            $this->info("   ✅ Login successful");
-            $this->line("   🔑 Token: " . substr($token, 0, 20) . "...");
+            $this->info('   ✅ Login successful');
+            $this->line('   🔑 Token: '.substr($token, 0, 20).'...');
         } else {
-            $this->error("   ❌ Login failed: " . $loginResult['message']);
+            $this->error('   ❌ Login failed: '.$loginResult['message']);
+
             return;
         }
 
@@ -108,10 +107,10 @@ class TestAuthenticationCommand extends Command
 
         if ($profileResult['success']) {
             $results['authenticated_request'] = true;
-            $this->info("   ✅ Authenticated request successful");
-            $this->line("   👤 User: " . $profileResult['data']['name'] ?? 'Unknown');
+            $this->info('   ✅ Authenticated request successful');
+            $this->line('   👤 User: '.$profileResult['data']['name'] ?? 'Unknown');
         } else {
-            $this->error("   ❌ Authenticated request failed: " . $profileResult['message']);
+            $this->error('   ❌ Authenticated request failed: '.$profileResult['message']);
         }
 
         // Test 3: Rate Limiting
@@ -120,20 +119,20 @@ class TestAuthenticationCommand extends Command
 
         if ($rateLimitResult['triggered']) {
             $results['rate_limiting'] = true;
-            $this->info("   ✅ Rate limiting working");
-            $this->line("   ⏱️  Rate limit headers detected");
+            $this->info('   ✅ Rate limiting working');
+            $this->line('   ⏱️  Rate limit headers detected');
         } else {
-            $this->warn("   ⚠️  Rate limiting not triggered (may need more requests)");
+            $this->warn('   ⚠️  Rate limiting not triggered (may need more requests)');
         }
 
         // Test 4: Invalid Token
         $this->info('4. Testing invalid token handling...');
         $invalidResult = $this->testInvalidToken();
 
-        if (!$invalidResult['success']) {
-            $this->info("   ✅ Invalid token properly rejected");
+        if (! $invalidResult['success']) {
+            $this->info('   ✅ Invalid token properly rejected');
         } else {
-            $this->error("   ❌ Invalid token was accepted");
+            $this->error('   ❌ Invalid token was accepted');
         }
 
         // Test 5: Logout
@@ -142,19 +141,19 @@ class TestAuthenticationCommand extends Command
 
         if ($logoutResult['success']) {
             $results['logout'] = true;
-            $this->info("   ✅ Logout successful");
+            $this->info('   ✅ Logout successful');
         } else {
-            $this->error("   ❌ Logout failed: " . $logoutResult['message']);
+            $this->error('   ❌ Logout failed: '.$logoutResult['message']);
         }
 
         // Test 6: Token After Logout
         $this->info('6. Testing token after logout...');
         $afterLogoutResult = $this->testMobileProfile($token);
 
-        if (!$afterLogoutResult['success']) {
-            $this->info("   ✅ Token properly invalidated after logout");
+        if (! $afterLogoutResult['success']) {
+            $this->info('   ✅ Token properly invalidated after logout');
         } else {
-            $this->error("   ❌ Token still valid after logout");
+            $this->error('   ❌ Token still valid after logout');
         }
 
         $this->displayResults('Mobile', $results);
@@ -175,15 +174,15 @@ class TestAuthenticationCommand extends Command
         $this->info('Testing web endpoint accessibility...');
 
         try {
-            $response = Http::timeout(5)->get($this->baseUrl . '/login');
+            $response = Http::timeout(5)->get($this->baseUrl.'/login');
 
             if ($response->successful()) {
-                $this->info("   ✅ Web login page accessible");
+                $this->info('   ✅ Web login page accessible');
             } else {
-                $this->error("   ❌ Web login page not accessible");
+                $this->error('   ❌ Web login page not accessible');
             }
         } catch (\Exception $e) {
-            $this->error("   ❌ Web endpoint error: " . $e->getMessage());
+            $this->error('   ❌ Web endpoint error: '.$e->getMessage());
         }
     }
 
@@ -194,31 +193,32 @@ class TestAuthenticationCommand extends Command
                 ->withHeaders([
                     'X-Platform' => 'mobile',
                     'Accept' => 'application/json',
-                    'Content-Type' => 'application/json'
+                    'Content-Type' => 'application/json',
                 ])
-                ->post($this->baseUrl . '/api/auth/login', [
+                ->post($this->baseUrl.'/api/auth/login', [
                     'email' => $email,
-                    'password' => $password
+                    'password' => $password,
                 ]);
 
             if ($response->successful()) {
                 $data = $response->json();
+
                 return [
                     'success' => true,
                     'token' => $data['data']['tokens']['accessToken'] ?? null,
-                    'data' => $data
+                    'data' => $data,
                 ];
             } else {
                 return [
                     'success' => false,
                     'message' => $response->json()['message'] ?? 'Login failed',
-                    'status' => $response->status()
+                    'status' => $response->status(),
                 ];
             }
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
@@ -228,35 +228,35 @@ class TestAuthenticationCommand extends Command
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $token,
+                    'Authorization' => 'Bearer '.$token,
                     'X-Platform' => 'mobile',
-                    'Accept' => 'application/json'
+                    'Accept' => 'application/json',
                 ])
-                ->get($this->baseUrl . '/api/auth/me');
+                ->get($this->baseUrl.'/api/auth/me');
 
             if ($response->successful()) {
                 return [
                     'success' => true,
-                    'data' => $response->json()['data'] ?? []
+                    'data' => $response->json()['data'] ?? [],
                 ];
             } else {
                 return [
                     'success' => false,
                     'message' => $response->json()['message'] ?? 'Profile request failed',
-                    'status' => $response->status()
+                    'status' => $response->status(),
                 ];
             }
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
 
     protected function testMobileRateLimit($email, $password)
     {
-        $this->info("   Sending rapid login requests to trigger rate limiting...");
+        $this->info('   Sending rapid login requests to trigger rate limiting...');
 
         $rateLimitTriggered = false;
         $headers = null;
@@ -267,11 +267,11 @@ class TestAuthenticationCommand extends Command
                 $response = Http::timeout(5)
                     ->withHeaders([
                         'X-Platform' => 'mobile',
-                        'Accept' => 'application/json'
+                        'Accept' => 'application/json',
                     ])
-                    ->post($this->baseUrl . '/api/auth/login', [
-                        'email' => 'invalid-' . $i . '@example.com',
-                        'password' => 'wrong-password'
+                    ->post($this->baseUrl.'/api/auth/login', [
+                        'email' => 'invalid-'.$i.'@example.com',
+                        'password' => 'wrong-password',
                     ]);
 
                 $headers = $response->headers();
@@ -284,12 +284,12 @@ class TestAuthenticationCommand extends Command
 
                 if (
                     isset($headers['X-RateLimit-Remaining'][0]) &&
-                    (int)$headers['X-RateLimit-Remaining'][0] < 3
+                    (int) $headers['X-RateLimit-Remaining'][0] < 3
                 ) {
-                    $this->line("   Rate limit approaching: " . $headers['X-RateLimit-Remaining'][0] . " remaining");
+                    $this->line('   Rate limit approaching: '.$headers['X-RateLimit-Remaining'][0].' remaining');
                 }
             } catch (\Exception $e) {
-                $this->line("   Request $i failed: " . $e->getMessage());
+                $this->line("   Request $i failed: ".$e->getMessage());
             }
 
             usleep(100000); // 100ms delay
@@ -297,7 +297,7 @@ class TestAuthenticationCommand extends Command
 
         return [
             'triggered' => $rateLimitTriggered,
-            'headers' => $headers
+            'headers' => $headers,
         ];
     }
 
@@ -308,18 +308,18 @@ class TestAuthenticationCommand extends Command
                 ->withHeaders([
                     'Authorization' => 'Bearer invalid-token-12345',
                     'X-Platform' => 'mobile',
-                    'Accept' => 'application/json'
+                    'Accept' => 'application/json',
                 ])
-                ->get($this->baseUrl . '/api/auth/me');
+                ->get($this->baseUrl.'/api/auth/me');
 
             return [
                 'success' => $response->successful(),
-                'status' => $response->status()
+                'status' => $response->status(),
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
@@ -329,20 +329,20 @@ class TestAuthenticationCommand extends Command
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $token,
+                    'Authorization' => 'Bearer '.$token,
                     'X-Platform' => 'mobile',
-                    'Accept' => 'application/json'
+                    'Accept' => 'application/json',
                 ])
-                ->post($this->baseUrl . '/api/auth/logout');
+                ->post($this->baseUrl.'/api/auth/logout');
 
             return [
                 'success' => $response->successful(),
-                'message' => $response->successful() ? 'Logout successful' : 'Logout failed'
+                'message' => $response->successful() ? 'Logout successful' : 'Logout failed',
             ];
         } catch (\Exception $e) {
             return [
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ];
         }
     }
@@ -351,11 +351,11 @@ class TestAuthenticationCommand extends Command
     {
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             $this->info("Creating test user: $email");
 
             User::create([
-                'name' => 'Test User (' . ucfirst($type) . ')',
+                'name' => 'Test User ('.ucfirst($type).')',
                 'email' => $email,
                 'password' => bcrypt($password),
                 'email_verified_at' => now(),
@@ -365,7 +365,7 @@ class TestAuthenticationCommand extends Command
 
     protected function runLoadTest($platform)
     {
-        $this->info('🚀 Running Load Test for ' . ucfirst($platform) . ' Authentication');
+        $this->info('🚀 Running Load Test for '.ucfirst($platform).' Authentication');
         $this->info('==================================================');
 
         $concurrentUsers = 20;
@@ -382,14 +382,14 @@ class TestAuthenticationCommand extends Command
             $this->createTestUser($email, 'LoadTest123!', $platform);
         }
 
-        $this->withProgressBar(range(1, $concurrentUsers), function ($userIndex) use ($requestsPerUser, $platform, &$results) {
+        $this->withProgressBar(range(1, $concurrentUsers), function ($userIndex) use ($requestsPerUser, &$results) {
             $email = "loadtest{$userIndex}@astacala.com";
             $password = 'LoadTest123!';
 
             $userResults = [
                 'login_times' => [],
                 'profile_times' => [],
-                'errors' => 0
+                'errors' => 0,
             ];
 
             for ($j = 1; $j <= $requestsPerUser; $j++) {
@@ -434,13 +434,13 @@ class TestAuthenticationCommand extends Command
 
     protected function runNetworkTest($platform)
     {
-        $this->info('🌐 Running Network Condition Test for ' . ucfirst($platform));
+        $this->info('🌐 Running Network Condition Test for '.ucfirst($platform));
         $this->info('=============================================');
 
         $testScenarios = [
             'normal' => ['timeout' => 10, 'description' => 'Normal conditions'],
             'slow' => ['timeout' => 30, 'description' => 'Slow network (30s timeout)'],
-            'very_slow' => ['timeout' => 60, 'description' => 'Very slow network (60s timeout)']
+            'very_slow' => ['timeout' => 60, 'description' => 'Very slow network (60s timeout)'],
         ];
 
         $email = 'networktest@astacala.com';
@@ -448,7 +448,7 @@ class TestAuthenticationCommand extends Command
         $this->createTestUser($email, $password, $platform);
 
         foreach ($testScenarios as $scenario => $config) {
-            $this->info("\nTesting: " . $config['description']);
+            $this->info("\nTesting: ".$config['description']);
 
             $startTime = microtime(true);
 
@@ -456,23 +456,23 @@ class TestAuthenticationCommand extends Command
                 $response = Http::timeout($config['timeout'])
                     ->withHeaders([
                         'X-Platform' => $platform,
-                        'Accept' => 'application/json'
+                        'Accept' => 'application/json',
                     ])
-                    ->post($this->baseUrl . '/api/auth/login', [
+                    ->post($this->baseUrl.'/api/auth/login', [
                         'email' => $email,
-                        'password' => $password
+                        'password' => $password,
                     ]);
 
                 $responseTime = (microtime(true) - $startTime) * 1000;
 
                 if ($response->successful()) {
-                    $this->info("   ✅ Success - Response time: " . round($responseTime, 2) . "ms");
+                    $this->info('   ✅ Success - Response time: '.round($responseTime, 2).'ms');
                 } else {
-                    $this->error("   ❌ Failed - Status: " . $response->status());
+                    $this->error('   ❌ Failed - Status: '.$response->status());
                 }
             } catch (\Exception $e) {
                 $responseTime = (microtime(true) - $startTime) * 1000;
-                $this->error("   ❌ Timeout/Error after " . round($responseTime, 2) . "ms: " . $e->getMessage());
+                $this->error('   ❌ Timeout/Error after '.round($responseTime, 2).'ms: '.$e->getMessage());
             }
         }
 
@@ -491,7 +491,7 @@ class TestAuthenticationCommand extends Command
 
         foreach ($results as $test => $result) {
             $status = $result ? '✅' : '❌';
-            $this->line("$status " . ucwords(str_replace('_', ' ', $test)));
+            $this->line("$status ".ucwords(str_replace('_', ' ', $test)));
         }
 
         $this->newLine();
@@ -518,34 +518,34 @@ class TestAuthenticationCommand extends Command
         $successfulRequests = $totalRequests - $totalErrors;
         $successRate = round(($successfulRequests / $totalRequests) * 100, 1);
 
-        $this->line("Total Time: " . round($totalTime, 2) . " seconds");
+        $this->line('Total Time: '.round($totalTime, 2).' seconds');
         $this->line("Concurrent Users: $concurrentUsers");
-        $this->line("Requests per User: " . ($requestsPerUser * 2) . " (login + profile)");
+        $this->line('Requests per User: '.($requestsPerUser * 2).' (login + profile)');
         $this->line("Total Requests: $totalRequests");
         $this->line("Successful Requests: $successfulRequests");
         $this->line("Failed Requests: $totalErrors");
         $this->line("Success Rate: $successRate%");
-        $this->line("Requests per Second: " . round($totalRequests / $totalTime, 2));
+        $this->line('Requests per Second: '.round($totalRequests / $totalTime, 2));
 
-        if (!empty($allLoginTimes)) {
+        if (! empty($allLoginTimes)) {
             $avgLogin = round(array_sum($allLoginTimes) / count($allLoginTimes), 2);
             $maxLogin = round(max($allLoginTimes), 2);
             $minLogin = round(min($allLoginTimes), 2);
 
             $this->newLine();
-            $this->line("Login Performance:");
+            $this->line('Login Performance:');
             $this->line("  Average: {$avgLogin}ms");
             $this->line("  Min: {$minLogin}ms");
             $this->line("  Max: {$maxLogin}ms");
         }
 
-        if (!empty($allProfileTimes)) {
+        if (! empty($allProfileTimes)) {
             $avgProfile = round(array_sum($allProfileTimes) / count($allProfileTimes), 2);
             $maxProfile = round(max($allProfileTimes), 2);
             $minProfile = round(min($allProfileTimes), 2);
 
             $this->newLine();
-            $this->line("Profile Request Performance:");
+            $this->line('Profile Request Performance:');
             $this->line("  Average: {$avgProfile}ms");
             $this->line("  Min: {$minProfile}ms");
             $this->line("  Max: {$maxProfile}ms");
@@ -553,12 +553,12 @@ class TestAuthenticationCommand extends Command
 
         // Performance recommendations
         $this->newLine();
-        if ($successRate >= 95 && !empty($allLoginTimes) && array_sum($allLoginTimes) / count($allLoginTimes) < 1000) {
-            $this->info("🎉 Excellent performance! System handles load well.");
+        if ($successRate >= 95 && ! empty($allLoginTimes) && array_sum($allLoginTimes) / count($allLoginTimes) < 1000) {
+            $this->info('🎉 Excellent performance! System handles load well.');
         } elseif ($successRate >= 80) {
-            $this->warn("⚠️ Good performance with some issues. Consider optimization.");
+            $this->warn('⚠️ Good performance with some issues. Consider optimization.');
         } else {
-            $this->error("❌ Poor performance. System needs optimization for production load.");
+            $this->error('❌ Poor performance. System needs optimization for production load.');
         }
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\DisasterReport;
 use App\Models\User;
+use Illuminate\Console\Command;
 
 class PopulateDisasterReportFields extends Command
 {
@@ -51,12 +51,12 @@ class PopulateDisasterReportFields extends Command
             '+62812345017',
             '+62812345018',
             '+62812345019',
-            '+62812345020'
+            '+62812345020',
         ];
 
         try {
             $reports = DisasterReport::all();
-            $this->info("📊 Found " . $reports->count() . " disaster reports to update");
+            $this->info('📊 Found '.$reports->count().' disaster reports to update');
 
             $updated_count = 0;
             $bar = $this->output->createProgressBar($reports->count());
@@ -67,12 +67,12 @@ class PopulateDisasterReportFields extends Command
 
                 // Generate coordinate_display from latitude/longitude
                 if ($report->latitude && $report->longitude) {
-                    $updates['coordinate_display'] = number_format($report->latitude, 6) . ', ' . number_format($report->longitude, 6);
+                    $updates['coordinate_display'] = number_format($report->latitude, 6).', '.number_format($report->longitude, 6);
                 } else {
                     // Generate realistic Indonesian coordinates if missing
                     $lat = -6.2 + (rand(-200, 200) / 100); // Around Jakarta area
                     $lng = 106.8 + (rand(-200, 200) / 100);
-                    $updates['coordinate_display'] = number_format($lat, 6) . ', ' . number_format($lng, 6);
+                    $updates['coordinate_display'] = number_format($lat, 6).', '.number_format($lng, 6);
                     $updates['latitude'] = $lat;
                     $updates['longitude'] = $lng;
                 }
@@ -96,7 +96,7 @@ class PopulateDisasterReportFields extends Command
                     }
                 }
 
-                if (!empty($updates)) {
+                if (! empty($updates)) {
                     $report->update($updates);
                     $updated_count++;
                 }
@@ -108,15 +108,15 @@ class PopulateDisasterReportFields extends Command
             $this->newLine(2);
 
             $this->info("🎉 SUCCESS! Updated $updated_count disaster reports");
-            $this->info("📊 All reports now have:");
-            $this->info("   ✅ coordinate_display (for Koordinat column)");
-            $this->info("   ✅ reporter_phone (for No HP column)");
-            $this->info("   ✅ reporter_username (for Username Pengguna column)");
+            $this->info('📊 All reports now have:');
+            $this->info('   ✅ coordinate_display (for Koordinat column)');
+            $this->info('   ✅ reporter_phone (for No HP column)');
+            $this->info('   ✅ reporter_username (for Username Pengguna column)');
 
             // Test query to verify the data
             $this->newLine();
-            $this->info("🔄 TESTING UPDATED DATA");
-            $this->info("======================");
+            $this->info('🔄 TESTING UPDATED DATA');
+            $this->info('======================');
 
             $test_reports = DisasterReport::select('title', 'coordinate_display', 'reporter_phone', 'reporter_username')
                 ->limit(5)
@@ -130,9 +130,10 @@ class PopulateDisasterReportFields extends Command
                 $this->newLine();
             }
 
-            $this->info("✅ DISASTER REPORTS DATA POPULATION COMPLETE!");
+            $this->info('✅ DISASTER REPORTS DATA POPULATION COMPLETE!');
         } catch (\Exception $e) {
-            $this->error("❌ ERROR: " . $e->getMessage());
+            $this->error('❌ ERROR: '.$e->getMessage());
+
             return 1;
         }
 

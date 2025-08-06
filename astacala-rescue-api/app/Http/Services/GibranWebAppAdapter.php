@@ -3,7 +3,6 @@
 namespace App\Http\Services;
 
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 /**
  * Gibran Web App Compatibility Layer
@@ -14,8 +13,8 @@ class GibranWebAppAdapter
 {
     /**
      * Transform mobile disaster report to Gibran's pelaporan format
-     * 
-     * @param array $mobileData Data from mobile app submission
+     *
+     * @param  array  $mobileData  Data from mobile app submission
      * @return array Data formatted for Gibran's web app
      */
     public function transformMobileToGibranFormat(array $mobileData): array
@@ -61,15 +60,15 @@ class GibranWebAppAdapter
 
     /**
      * Transform Gibran's pelaporan data to mobile format
-     * 
-     * @param object $gibranReport Gibran's pelaporan model
+     *
+     * @param  object  $gibranReport  Gibran's pelaporan model
      * @return array Data formatted for mobile app
      */
     public function transformGibranToMobileFormat(object $gibranReport): array
     {
         // Parse mobile metadata if available
         $mobileMetadata = [];
-        if (!empty($gibranReport->mobile_metadata)) {
+        if (! empty($gibranReport->mobile_metadata)) {
             $mobileMetadata = json_decode($gibranReport->mobile_metadata, true) ?? [];
         }
 
@@ -118,16 +117,13 @@ class GibranWebAppAdapter
                 'source' => 'web_dashboard',
                 'processed_by' => 'gibran_web_adapter',
                 'original_format' => 'pelaporan_table',
-            ]
+            ],
         ];
     }
 
     /**
      * Transform mobile disaster report to unified backend format
      * This ensures compatibility with existing mobile backend while supporting web data
-     * 
-     * @param array $mobileData
-     * @return array
      */
     public function transformMobileToUnifiedBackend(array $mobileData): array
     {
@@ -184,6 +180,7 @@ class GibranWebAppAdapter
     {
         if (strpos($coordinates, ',') !== false) {
             [$lat, $lng] = explode(',', $coordinates, 2);
+
             return [
                 'latitude' => (float) trim($lat),
                 'longitude' => (float) trim($lng),
@@ -269,7 +266,7 @@ class GibranWebAppAdapter
                 'id' => null,
                 'url' => $imagePath,
                 'is_primary' => true,
-            ]
+            ],
         ];
     }
 
@@ -296,23 +293,23 @@ class GibranWebAppAdapter
     {
         $parts = [];
 
-        if (!empty($data['teamName'])) {
+        if (! empty($data['teamName'])) {
             $parts[] = "Tim Pelapor: {$data['teamName']}";
         }
 
-        if (!empty($data['personnelCount'])) {
+        if (! empty($data['personnelCount'])) {
             $parts[] = "Jumlah Personel: {$data['personnelCount']}";
         }
 
-        if (!empty($data['phone'])) {
+        if (! empty($data['phone'])) {
             $parts[] = "Kontak: {$data['phone']}";
         }
 
-        if (!empty($data['description'])) {
+        if (! empty($data['description'])) {
             $parts[] = "Deskripsi: {$data['description']}";
         }
 
-        if (!empty($data['additionalNotes'])) {
+        if (! empty($data['additionalNotes'])) {
             $parts[] = "Catatan Tambahan: {$data['additionalNotes']}";
         }
 
@@ -334,6 +331,7 @@ class GibranWebAppAdapter
         ];
 
         $normalized = strtolower(trim($type));
+
         return $mapping[$normalized] ?? $normalized;
     }
 
@@ -350,6 +348,7 @@ class GibranWebAppAdapter
         ];
 
         $normalized = strtolower(trim($severity));
+
         return $mapping[$normalized] ?? $normalized;
     }
 
@@ -409,14 +408,14 @@ class GibranWebAppAdapter
                 'mobile_app' => '100%',
                 'gibran_web_app' => '100%',
                 'unified_backend' => '100%',
-            ]
+            ],
         ];
     }
 
     /**
      * Transform Gibran validated data to unified backend format
-     * 
-     * @param array $gibranData Validated data from Gibran's web form
+     *
+     * @param  array  $gibranData  Validated data from Gibran's web form
      * @return array Data formatted for mobile backend database
      */
     public function transformGibranToUnifiedBackend(array $gibranData): array
@@ -438,7 +437,7 @@ class GibranWebAppAdapter
             'incident_timestamp' => now(),
             'reported_by' => auth()->id(),
 
-            // Additional fields for web compatibility  
+            // Additional fields for web compatibility
             'team_name' => $gibranData['nama_team_pelapor'] ?? '',
             'metadata' => [
                 'source_platform' => 'web',
@@ -457,8 +456,8 @@ class GibranWebAppAdapter
     {
         $description = $gibranData['informasi_singkat_bencana'] ?? '';
 
-        if (!empty($gibranData['deskripsi_terkait_data_lainya'])) {
-            $description .= "\n\nInformasi Tambahan: " . $gibranData['deskripsi_terkait_data_lainya'];
+        if (! empty($gibranData['deskripsi_terkait_data_lainya'])) {
+            $description .= "\n\nInformasi Tambahan: ".$gibranData['deskripsi_terkait_data_lainya'];
         }
 
         return $description;

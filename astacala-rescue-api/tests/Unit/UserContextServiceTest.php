@@ -2,14 +2,14 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
 use App\Services\UserContextService;
-use Illuminate\Http\Request;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Tests\TestCase;
 
 /**
  * User Context Service Unit Tests
- * 
+ *
  * Tests for platform identification and permission management
  */
 class UserContextServiceTest extends TestCase
@@ -21,7 +21,7 @@ class UserContextServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->userContextService = new UserContextService();
+        $this->userContextService = new UserContextService;
     }
 
     /**
@@ -33,7 +33,7 @@ class UserContextServiceTest extends TestCase
             'authenticated_as' => 'mobile_user',
             'platform' => 'mobile',
             'user_type' => 'volunteer',
-            'auth_method' => 'jwt_token'
+            'auth_method' => 'jwt_token',
         ]);
 
         $this->assertTrue($this->userContextService->isMobileUser($request));
@@ -53,7 +53,7 @@ class UserContextServiceTest extends TestCase
             'platform' => 'web',
             'user_type' => 'admin',
             'auth_method' => 'session_cookie',
-            'admin_id' => 1
+            'admin_id' => 1,
         ]);
 
         $this->assertTrue($this->userContextService->isWebAdmin($request));
@@ -72,7 +72,7 @@ class UserContextServiceTest extends TestCase
             'authenticated_as' => 'mobile_user',
             'platform' => 'mobile',
             'user_type' => 'volunteer',
-            'auth_method' => 'jwt_token'
+            'auth_method' => 'jwt_token',
         ]);
 
         $context = $this->userContextService->getUserContext($request);
@@ -90,7 +90,7 @@ class UserContextServiceTest extends TestCase
             'view_field_updates',
             'access_forum',
             'receive_notifications',
-            'upload_images'
+            'upload_images',
         ];
 
         $this->assertEquals($expectedPermissions, $context['permissions']);
@@ -106,7 +106,7 @@ class UserContextServiceTest extends TestCase
             'platform' => 'web',
             'user_type' => 'admin',
             'auth_method' => 'session_cookie',
-            'admin_id' => 1
+            'admin_id' => 1,
         ]);
 
         $context = $this->userContextService->getUserContext($request);
@@ -127,7 +127,7 @@ class UserContextServiceTest extends TestCase
             'manage_publications',
             'send_notifications',
             'view_all_reports',
-            'admin_user_management'
+            'admin_user_management',
         ];
 
         $this->assertEquals($expectedPermissions, $context['permissions']);
@@ -163,7 +163,7 @@ class UserContextServiceTest extends TestCase
             'view_field_updates',
             'access_forum',
             'receive_notifications',
-            'upload_images'
+            'upload_images',
         ];
 
         $this->assertEquals($expectedPermissions, $permissions);
@@ -187,7 +187,7 @@ class UserContextServiceTest extends TestCase
             'manage_publications',
             'send_notifications',
             'view_all_reports',
-            'admin_user_management'
+            'admin_user_management',
         ];
 
         $this->assertEquals($expectedPermissions, $permissions);
@@ -203,7 +203,7 @@ class UserContextServiceTest extends TestCase
             'authenticated_as' => 'mobile_user',
             'platform' => 'mobile',
             'user_type' => 'volunteer',
-            'auth_method' => 'jwt_token'
+            'auth_method' => 'jwt_token',
         ]);
 
         // Test valid mobile permissions
@@ -227,7 +227,7 @@ class UserContextServiceTest extends TestCase
             'platform' => 'web',
             'user_type' => 'admin',
             'auth_method' => 'session_cookie',
-            'admin_id' => 1
+            'admin_id' => 1,
         ]);
 
         // Test valid admin permissions
@@ -251,7 +251,7 @@ class UserContextServiceTest extends TestCase
             'authenticated_as' => 'mobile_user',
             'platform' => 'mobile',
             'user_type' => 'volunteer',
-            'auth_method' => 'jwt_token'
+            'auth_method' => 'jwt_token',
         ]);
 
         $validation = $this->userContextService->validateContext($validRequest);
@@ -299,7 +299,7 @@ class UserContextServiceTest extends TestCase
      */
     private function createMockRequest(array $attributes = [])
     {
-        $request = new Request();
+        $request = new Request;
 
         foreach ($attributes as $key => $value) {
             $request->merge([$key => $value]);

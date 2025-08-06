@@ -1,9 +1,9 @@
 <?php
 
 // Check existing users and test authentication with known credentials
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
-$app = require_once __DIR__ . '/bootstrap/app.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
 $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 
 echo "=== Database User Analysis ===\n";
@@ -14,7 +14,7 @@ try {
         ->select('id', 'name', 'email', 'role', 'created_at')
         ->get();
 
-    echo "Total users: " . $users->count() . "\n\n";
+    echo 'Total users: '.$users->count()."\n\n";
 
     echo "User accounts:\n";
     foreach ($users->take(10) as $user) {
@@ -32,19 +32,19 @@ try {
     // Test standard login
     $loginData = [
         'email' => $testEmail,
-        'password' => $testPassword
+        'password' => $testPassword,
     ];
 
     echo "Testing standard API login...\n";
     $response = makeRequest('POST', '/api/v1/auth/login', $loginData);
-    echo "Response: " . json_encode($response, JSON_PRETTY_PRINT) . "\n\n";
+    echo 'Response: '.json_encode($response, JSON_PRETTY_PRINT)."\n\n";
 
     // Test Gibran login
     echo "Testing Gibran API login...\n";
     $response = makeRequest('POST', '/api/gibran/auth/login', $loginData);
-    echo "Response: " . json_encode($response, JSON_PRETTY_PRINT) . "\n";
+    echo 'Response: '.json_encode($response, JSON_PRETTY_PRINT)."\n";
 } catch (Exception $e) {
-    echo "❌ ERROR: " . $e->getMessage() . "\n";
+    echo '❌ ERROR: '.$e->getMessage()."\n";
 }
 
 function makeRequest($method, $endpoint, $data = [])
@@ -52,12 +52,12 @@ function makeRequest($method, $endpoint, $data = [])
     global $baseUrl;
 
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $baseUrl . $endpoint);
+    curl_setopt($ch, CURLOPT_URL, $baseUrl.$endpoint);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/json',
-        'Accept: application/json'
+        'Accept: application/json',
     ]);
 
     if ($method === 'POST') {
@@ -75,6 +75,6 @@ function makeRequest($method, $endpoint, $data = [])
         'success' => $httpCode >= 200 && $httpCode < 300,
         'status_code' => $httpCode,
         'data' => $responseData,
-        'raw_response' => $response
+        'raw_response' => $response,
     ];
 }

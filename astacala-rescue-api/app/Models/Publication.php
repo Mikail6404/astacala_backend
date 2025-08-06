@@ -43,7 +43,7 @@ class Publication extends Model
     protected $dates = [
         'published_at',
         'archived_at',
-        'deleted_at'
+        'deleted_at',
     ];
 
     /**
@@ -150,7 +150,7 @@ class Publication extends Model
     public function getExcerptAttribute()
     {
         return strlen($this->content) > 150
-            ? substr(strip_tags($this->content), 0, 150) . '...'
+            ? substr(strip_tags($this->content), 0, 150).'...'
             : strip_tags($this->content);
     }
 
@@ -160,6 +160,7 @@ class Publication extends Model
     public function getReadingTimeAttribute()
     {
         $wordCount = str_word_count(strip_tags($this->content));
+
         return ceil($wordCount / 200); // Average reading speed: 200 words per minute
     }
 
@@ -202,7 +203,7 @@ class Publication extends Model
                 if ($this->tags) {
                     $tags = explode(',', $this->tags);
                     foreach ($tags as $tag) {
-                        $query->orWhere('tags', 'LIKE', '%' . trim($tag) . '%');
+                        $query->orWhere('tags', 'LIKE', '%'.trim($tag).'%');
                     }
                 }
             })

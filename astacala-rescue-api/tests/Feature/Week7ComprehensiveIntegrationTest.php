@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
-use App\Models\DisasterReport;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\DB;
+use Tests\TestCase;
 
 class Week7ComprehensiveIntegrationTest extends TestCase
 {
@@ -15,21 +14,20 @@ class Week7ComprehensiveIntegrationTest extends TestCase
 
     /**
      * WEEK 7 DAY 1-3: End-to-End Integration Testing
-     * 
+     *
      * This comprehensive test suite validates:
      * 1. Complete Mobile→Web Admin Workflows
-     * 2. Real-time Cross-Platform Synchronization  
+     * 2. Real-time Cross-Platform Synchronization
      * 3. Data Consistency Under Load
      * 4. Emergency Response Scenarios
      * 5. Performance Under Stress
      */
-
     protected function setUp(): void
     {
         parent::setUp();
 
         // Backup existing data with unique timestamp including microseconds
-        $timestamp = now()->format('Y_m_d_His') . '_' . str_pad(microtime(true) * 10000 % 10000, 4, '0', STR_PAD_LEFT);
+        $timestamp = now()->format('Y_m_d_His').'_'.str_pad(microtime(true) * 10000 % 10000, 4, '0', STR_PAD_LEFT);
         try {
             DB::statement("CREATE TABLE disaster_reports_backup_{$timestamp} AS SELECT * FROM disaster_reports");
             echo "✅ Backup created: disaster_reports_backup_{$timestamp}\n";
@@ -47,13 +45,13 @@ class Week7ComprehensiveIntegrationTest extends TestCase
         $mobileVolunteer = User::factory()->create([
             'name' => 'Mobile Volunteer',
             'email' => 'volunteer@mobile.test',
-            'role' => 'volunteer'
+            'role' => 'volunteer',
         ]);
 
         $webAdmin = User::factory()->create([
             'name' => 'Web Administrator',
             'email' => 'admin@web.test',
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         echo "STEP 1: Mobile volunteer submits emergency report...\n";
@@ -72,7 +70,7 @@ class Week7ComprehensiveIntegrationTest extends TestCase
                 'teamName' => 'Mobile Response Team Alpha',
                 'weatherCondition' => 'Heavy Rain',
                 'incidentTimestamp' => now()->toISOString(),
-                'platform' => 'mobile'
+                'platform' => 'mobile',
             ]);
 
         $mobileResponse->assertStatus(201);
@@ -103,7 +101,7 @@ class Week7ComprehensiveIntegrationTest extends TestCase
         // Web admin updates report status
         $webUpdateResponse = $this->actingAs($webAdmin)
             ->putJson("/api/v1/reports/{$reportId}", [
-                'status' => 'ACTIVE'
+                'status' => 'ACTIVE',
             ]);
 
         $webUpdateResponse->assertStatus(200);
@@ -118,8 +116,8 @@ class Week7ComprehensiveIntegrationTest extends TestCase
         $mobileUpdateCheck->assertStatus(200);
         $updatedData = $mobileUpdateCheck->json()['data'];
 
-        echo "DEBUG: Updated data verification_status = " . var_export($updatedData['verification_status'], true) . "\n";
-        echo "DEBUG: Updated data status = " . var_export($updatedData['status'], true) . "\n";
+        echo 'DEBUG: Updated data verification_status = '.var_export($updatedData['verification_status'], true)."\n";
+        echo 'DEBUG: Updated data status = '.var_export($updatedData['status'], true)."\n";
 
         // Validate bidirectional sync
         $this->assertEquals('ACTIVE', $updatedData['status']);
@@ -154,13 +152,13 @@ class Week7ComprehensiveIntegrationTest extends TestCase
                 'locationName' => 'Benchmark Area',
                 'estimatedAffected' => 10,
                 'incidentTimestamp' => now()->toISOString(),
-                'platform' => 'mobile'
+                'platform' => 'mobile',
             ]);
 
         $baselineTime = microtime(true) - $startTime;
         $baselineResponse->assertStatus(201);
 
-        echo "✅ Baseline create time: " . round($baselineTime * 1000, 2) . "ms\n";
+        echo '✅ Baseline create time: '.round($baselineTime * 1000, 2)."ms\n";
 
         $reportId = $baselineResponse->json()['data']['reportId'];
 
@@ -174,7 +172,7 @@ class Week7ComprehensiveIntegrationTest extends TestCase
         $readTime = microtime(true) - $readStartTime;
         $readResponse->assertStatus(200);
 
-        echo "✅ Read performance: " . round($readTime * 1000, 2) . "ms\n";
+        echo '✅ Read performance: '.round($readTime * 1000, 2)."ms\n";
 
         echo "STEP 3: Update performance testing...\n";
 
@@ -184,13 +182,13 @@ class Week7ComprehensiveIntegrationTest extends TestCase
             ->putJson("/api/v1/reports/{$reportId}", [
                 'estimatedAffected' => 50,
                 'status' => 'ACTIVE',
-                'platform' => 'mobile'
+                'platform' => 'mobile',
             ]);
 
         $updateTime = microtime(true) - $updateStartTime;
         $updateResponse->assertStatus(200);
 
-        echo "✅ Update performance: " . round($updateTime * 1000, 2) . "ms\n";
+        echo '✅ Update performance: '.round($updateTime * 1000, 2)."ms\n";
 
         echo "STEP 4: Performance assertions...\n";
 

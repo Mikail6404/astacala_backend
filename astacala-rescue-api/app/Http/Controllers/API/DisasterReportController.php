@@ -5,19 +5,20 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Http\Services\CrossPlatformDataMapper;
 use App\Http\Services\CrossPlatformValidator;
-use App\Services\CrossPlatformNotificationService;
 use App\Models\DisasterReport;
 use App\Models\ReportImage;
+use App\Services\CrossPlatformNotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class DisasterReportController extends Controller
 {
     protected $dataMapper;
+
     protected $crossValidator;
+
     protected $notificationService;
 
     public function __construct(
@@ -66,8 +67,8 @@ class DisasterReportController extends Controller
                     'totalPages' => $reports->lastPage(),
                     'totalReports' => $reports->total(),
                     'hasNextPage' => $reports->hasMorePages(),
-                ]
-            ]
+                ],
+            ],
         ]);
     }
 
@@ -95,7 +96,7 @@ class DisasterReportController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -118,7 +119,7 @@ class DisasterReportController extends Controller
                 'requiredResources' => $request->requiredResources,
                 'contactInfo' => $request->contactInfo,
                 'isEmergency' => $request->isEmergency ?? false,
-            ]
+            ],
         ]);
 
         // Handle image uploads
@@ -150,7 +151,7 @@ class DisasterReportController extends Controller
                 'status' => $report->status,
                 'submittedAt' => $report->created_at,
                 'imageUrls' => $imageUrls,
-            ]
+            ],
         ], 201);
     }
 
@@ -162,16 +163,16 @@ class DisasterReportController extends Controller
         $report = DisasterReport::with(['reporter', 'assignee', 'images'])
             ->find($id);
 
-        if (!$report) {
+        if (! $report) {
             return response()->json([
                 'success' => false,
-                'message' => 'Report not found'
+                'message' => 'Report not found',
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data' => $report
+            'data' => $report,
         ]);
     }
 
@@ -182,10 +183,10 @@ class DisasterReportController extends Controller
     {
         $report = DisasterReport::find($id);
 
-        if (!$report) {
+        if (! $report) {
             return response()->json([
                 'success' => false,
-                'message' => 'Report not found'
+                'message' => 'Report not found',
             ], 404);
         }
 
@@ -199,7 +200,7 @@ class DisasterReportController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -214,7 +215,7 @@ class DisasterReportController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Report updated successfully',
-            'data' => $report
+            'data' => $report,
         ]);
     }
 
@@ -262,7 +263,7 @@ class DisasterReportController extends Controller
                 'recentActivity' => $recentActivity,
                 'severityBreakdown' => $severityBreakdown,
                 'disasterTypeBreakdown' => $disasterTypeBreakdown,
-            ]
+            ],
         ]);
     }
 
@@ -320,7 +321,7 @@ class DisasterReportController extends Controller
                     'hasPreviousPage' => $reports->currentPage() > 1,
                 ],
                 'statistics' => $userStats,
-            ]
+            ],
         ]);
     }
 
@@ -350,7 +351,7 @@ class DisasterReportController extends Controller
                         'disaster_report_id' => $report->id,
                         'image_path' => $imageUrl,
                         'is_primary' => false,
-                        'uploaded_by' => auth()->id()
+                        'uploaded_by' => auth()->id(),
                     ]);
                 }
             }
@@ -362,19 +363,19 @@ class DisasterReportController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Disaster report submitted successfully from web dashboard',
-                'data' => $responseData
+                'data' => $responseData,
             ], Response::HTTP_CREATED);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to submit disaster report',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -432,11 +433,11 @@ class DisasterReportController extends Controller
                 $centerLat = $filters['center_lat'];
                 $centerLng = $filters['center_lng'];
 
-                $query->whereRaw("
+                $query->whereRaw('
                     (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * 
                     cos(radians(longitude) - radians(?)) + sin(radians(?)) * 
                     sin(radians(latitude)))) <= ?
-                ", [$centerLat, $centerLng, $centerLat, $radius]);
+                ', [$centerLat, $centerLng, $centerLat, $radius]);
             }
 
             // Sorting
@@ -467,20 +468,20 @@ class DisasterReportController extends Controller
                         'has_previous_page' => $reports->currentPage() > 1,
                     ],
                     'summary' => $this->getAdminSummary(),
-                    'filters_applied' => $filters
-                ]
+                    'filters_applied' => $filters,
+                ],
             ], Response::HTTP_OK);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid filter parameters',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to retrieve admin dashboard data',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -515,8 +516,8 @@ class DisasterReportController extends Controller
                     'total_pages' => $reports->lastPage(),
                     'total_pending' => $reports->total(),
                     'per_page' => $reports->perPage(),
-                ]
-            ]
+                ],
+            ],
         ]);
     }
 
@@ -555,8 +556,8 @@ class DisasterReportController extends Controller
                 'admin_user' => [
                     'id' => auth()->id(),
                     'name' => auth()->user()->name,
-                    'email' => auth()->user()->email
-                ]
+                    'email' => auth()->user()->email,
+                ],
             ];
             $report->metadata = $metadata;
 
@@ -568,24 +569,24 @@ class DisasterReportController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Disaster report verified successfully',
-                'data' => $responseData
+                'data' => $responseData,
             ], Response::HTTP_OK);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Disaster report not found'
+                'message' => 'Disaster report not found',
             ], Response::HTTP_NOT_FOUND);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to verify disaster report',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
@@ -601,21 +602,21 @@ class DisasterReportController extends Controller
             if ($report->status !== 'VERIFIED') {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Only verified reports can be published'
+                    'message' => 'Only verified reports can be published',
                 ], 400);
             }
 
             $validator = Validator::make($request->all(), [
                 'public_summary' => 'nullable|string|max:500',
                 'publish_level' => 'required|in:public,restricted,internal',
-                'emergency_alert' => 'boolean'
+                'emergency_alert' => 'boolean',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -628,7 +629,7 @@ class DisasterReportController extends Controller
                 'published_at' => now()->toISOString(),
                 'public_summary' => $request->public_summary,
                 'publish_level' => $request->publish_level,
-                'emergency_alert' => $request->boolean('emergency_alert', false)
+                'emergency_alert' => $request->boolean('emergency_alert', false),
             ];
             $report->metadata = $metadata;
 
@@ -637,13 +638,13 @@ class DisasterReportController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Disaster report published successfully',
-                'data' => $report->load(['reporter', 'images'])
+                'data' => $report->load(['reporter', 'images']),
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to publish disaster report',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -655,7 +656,6 @@ class DisasterReportController extends Controller
     {
         $user = auth()->user();
         /** @var \App\Models\User $user */
-
         $stats = [
             'total_reports' => $user->disasterReports()->count(),
             'reports_by_status' => [
@@ -676,13 +676,13 @@ class DisasterReportController extends Controller
                 ->get(['id', 'title', 'status', 'severity_level', 'created_at']),
             'monthly_reports' => $user->disasterReports()
                 ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
-                ->count()
+                ->count(),
         ];
 
         return response()->json([
             'success' => true,
             'message' => 'User statistics retrieved successfully',
-            'data' => $stats
+            'data' => $stats,
         ]);
     }
 
@@ -703,7 +703,7 @@ class DisasterReportController extends Controller
             'disaster_types' => DisasterReport::selectRaw('disaster_type, COUNT(*) as count')
                 ->groupBy('disaster_type')
                 ->pluck('count', 'disaster_type')
-                ->toArray()
+                ->toArray(),
         ];
     }
 }

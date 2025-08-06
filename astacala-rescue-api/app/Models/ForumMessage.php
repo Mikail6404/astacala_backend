@@ -19,14 +19,14 @@ class ForumMessage extends Model
         'message_type',
         'priority_level',
         'is_read',
-        'edited_at'
+        'edited_at',
     ];
 
     protected $casts = [
         'is_read' => 'boolean',
         'edited_at' => 'datetime',
         'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'updated_at' => 'datetime',
     ];
 
     protected $with = ['user'];
@@ -110,6 +110,6 @@ class ForumMessage extends Model
      */
     public function getFormattedTimestampAttribute(): string
     {
-        return $this->created_at->locale('id')->format('d F Y H:i') . ' WIB';
+        return $this->created_at->locale('id')->format('d F Y H:i').' WIB';
     }
 }

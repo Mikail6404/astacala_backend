@@ -25,7 +25,7 @@ echo "==============================\n";
 
 try {
     // Get table structure
-    $columns = Capsule::select("DESCRIBE users");
+    $columns = Capsule::select('DESCRIBE users');
 
     foreach ($columns as $column) {
         echo "Column: {$column->Field}, Type: {$column->Type}, Null: {$column->Null}, Default: {$column->Default}\n";
@@ -41,10 +41,10 @@ try {
         ->orderBy('created_at', 'desc')
         ->get();
 
-    echo "Found " . count($admins) . " admin users:\n";
+    echo 'Found '.count($admins)." admin users:\n";
     foreach ($admins as $admin) {
         echo "ID: {$admin->id}, Name: {$admin->name}, Email: {$admin->email}, Role: {$admin->role}\n";
     }
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }

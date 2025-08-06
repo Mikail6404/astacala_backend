@@ -6,14 +6,13 @@ use App\Models\DisasterReport;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 /**
  * Cross-Platform Conflict Resolution Service
- * 
+ *
  * Handles conflicts when multiple users (mobile volunteers and web admins)
  * attempt to modify the same disaster report simultaneously.
- * 
+ *
  * Features:
  * - Optimistic locking for concurrent edits
  * - Version control for disaster reports
@@ -26,8 +25,11 @@ class ConflictResolutionService
      * Conflict resolution strategies
      */
     const STRATEGY_ADMIN_WINS = 'admin_wins';           // Admin changes override volunteer changes
+
     const STRATEGY_LATEST_WINS = 'latest_wins';         // Most recent change wins
+
     const STRATEGY_MERGE_FIELDS = 'merge_fields';       // Merge non-conflicting fields
+
     const STRATEGY_MANUAL_REVIEW = 'manual_review';     // Flag for manual admin review
 
     /**
@@ -37,7 +39,7 @@ class ConflictResolutionService
         'description',           // Additional details can be appended
         'estimated_affected',    // Can be updated with better estimates
         'weather_condition',     // Can be refined
-        'additional_description' // Web-specific additional details
+        'additional_description', // Web-specific additional details
     ];
 
     /**
@@ -50,16 +52,16 @@ class ConflictResolutionService
         'latitude',
         'longitude',
         'location_name',
-        'status'
+        'status',
     ];
 
     /**
      * Attempt to update a disaster report with optimistic locking
      *
-     * @param int $reportId
-     * @param array $newData
-     * @param User $user
-     * @param string $expectedVersion
+     * @param  int  $reportId
+     * @param  array  $newData
+     * @param  User  $user
+     * @param  string  $expectedVersion
      * @return array
      */
     public function updateWithConflictDetection($reportId, $newData, $user, $expectedVersion = null)
@@ -70,7 +72,7 @@ class ConflictResolutionService
             // Lock the report for update
             $report = DisasterReport::lockForUpdate()->find($reportId);
 
-            if (!$report) {
+            if (! $report) {
                 throw new \Exception("Disaster report not found: {$reportId}");
             }
 
@@ -91,32 +93,32 @@ class ConflictResolutionService
 
             DB::commit();
 
-            Log::info("Report updated successfully without conflicts", [
+            Log::info('Report updated successfully without conflicts', [
                 'report_id' => $reportId,
                 'user_id' => $user->id,
                 'user_platform' => $this->getUserPlatform($user),
-                'updated_fields' => array_keys($newData)
+                'updated_fields' => array_keys($newData),
             ]);
 
             return [
                 'success' => true,
                 'message' => 'Report updated successfully',
                 'data' => $result,
-                'conflicts' => false
+                'conflicts' => false,
             ];
         } catch (\Exception $e) {
             DB::rollback();
 
-            Log::error("Update failed with error", [
+            Log::error('Update failed with error', [
                 'report_id' => $reportId,
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return [
                 'success' => false,
-                'message' => 'Update failed: ' . $e->getMessage(),
-                'conflicts' => false
+                'message' => 'Update failed: '.$e->getMessage(),
+                'conflicts' => false,
             ];
         }
     }
@@ -124,9 +126,9 @@ class ConflictResolutionService
     /**
      * Detect concurrent modifications to the same report
      *
-     * @param DisasterReport $report
-     * @param array $newData
-     * @param User $user
+     * @param  DisasterReport  $report
+     * @param  array  $newData
+     * @param  User  $user
      * @return array
      */
     protected function detectConcurrentModifications($report, $newData, $user)
@@ -134,7 +136,7 @@ class ConflictResolutionService
         // Check if report was modified by another user in the last 5 minutes
         $recentModification = $this->getRecentModifications($report->id, 5);
 
-        if (!$recentModification) {
+        if (! $recentModification) {
             return ['has_conflict' => false];
         }
 
@@ -157,17 +159,17 @@ class ConflictResolutionService
             'has_conflict' => true,
             'recent_modification' => $recentModification,
             'conflicting_fields' => $conflictingFields,
-            'conflict_severity' => $this->assessConflictSeverity($conflictingFields)
+            'conflict_severity' => $this->assessConflictSeverity($conflictingFields),
         ];
     }
 
     /**
      * Resolve conflicts based on configured strategy
      *
-     * @param DisasterReport $report
-     * @param array $newData
-     * @param User $user
-     * @param array $conflictInfo
+     * @param  DisasterReport  $report
+     * @param  array  $newData
+     * @param  User  $user
+     * @param  array  $conflictInfo
      * @return array
      */
     protected function resolveConflict($report, $newData, $user, $conflictInfo)
@@ -207,7 +209,7 @@ class ConflictResolutionService
                 'message' => 'Admin changes applied successfully (volunteer changes overridden)',
                 'data' => $result,
                 'conflicts' => true,
-                'resolution' => 'admin_override'
+                'resolution' => 'admin_override',
             ];
         } else {
             // Volunteer user - reject update
@@ -216,7 +218,7 @@ class ConflictResolutionService
                 'message' => 'Update rejected: Admin has made recent changes to this report',
                 'conflicts' => true,
                 'resolution' => 'admin_priority',
-                'admin_changes' => $this->getAdminChangeSummary($conflictInfo['recent_modification'])
+                'admin_changes' => $this->getAdminChangeSummary($conflictInfo['recent_modification']),
             ];
         }
     }
@@ -237,7 +239,7 @@ class ConflictResolutionService
             'message' => 'Update applied successfully (latest changes win)',
             'data' => $result,
             'conflicts' => true,
-            'resolution' => 'latest_wins'
+            'resolution' => 'latest_wins',
         ];
     }
 
@@ -250,7 +252,7 @@ class ConflictResolutionService
         $mergeableFields = array_intersect($conflictingFields, self::MERGEABLE_FIELDS);
         $criticalFields = array_intersect($conflictingFields, self::CRITICAL_FIELDS);
 
-        if (!empty($criticalFields)) {
+        if (! empty($criticalFields)) {
             // Critical fields conflict - flag for manual review
             return $this->flagForManualReview($report, $newData, $user, $conflictInfo);
         }
@@ -265,7 +267,7 @@ class ConflictResolutionService
             'data' => $result,
             'conflicts' => true,
             'resolution' => 'field_merge',
-            'merged_fields' => $mergeableFields
+            'merged_fields' => $mergeableFields,
         ];
     }
 
@@ -287,7 +289,7 @@ class ConflictResolutionService
             'resolution' => 'manual_review_required',
             'conflict_id' => $conflictRecord->id,
             'conflicting_fields' => $conflictInfo['conflicting_fields'],
-            'estimated_review_time' => '15-30 minutes'
+            'estimated_review_time' => '15-30 minutes',
         ];
     }
 
@@ -326,7 +328,7 @@ class ConflictResolutionService
             if ($oldValue != $newValue) {
                 $changes[$field] = [
                     'old' => $oldValue,
-                    'new' => $newValue
+                    'new' => $newValue,
                 ];
             }
         }
@@ -341,7 +343,7 @@ class ConflictResolutionService
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent(),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
     }
 
@@ -404,7 +406,7 @@ class ConflictResolutionService
     {
         $criticalConflicts = array_intersect($conflictingFields, self::CRITICAL_FIELDS);
 
-        if (!empty($criticalConflicts)) {
+        if (! empty($criticalConflicts)) {
             return 'high';
         }
 
@@ -453,7 +455,7 @@ class ConflictResolutionService
             'conflict_severity' => $conflictInfo['conflict_severity'],
             'status' => 'pending_review',
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
     }
 
@@ -462,11 +464,11 @@ class ConflictResolutionService
      */
     protected function handleVersionConflict($report, $newData, $user, $expectedVersion)
     {
-        Log::warning("Version conflict detected", [
+        Log::warning('Version conflict detected', [
             'report_id' => $report->id,
             'expected_version' => $expectedVersion,
             'current_version' => $report->version,
-            'user_id' => $user->id
+            'user_id' => $user->id,
         ]);
 
         return [
@@ -477,7 +479,7 @@ class ConflictResolutionService
             'expected_version' => $expectedVersion,
             'current_version' => $report->version,
             'last_modified_by' => $report->updated_by ?? 'Unknown',
-            'last_modified_at' => $report->updated_at
+            'last_modified_at' => $report->updated_at,
         ];
     }
 
@@ -504,11 +506,11 @@ class ConflictResolutionService
             );
         }
 
-        Log::info("Conflict resolution notification sent", [
+        Log::info('Conflict resolution notification sent', [
             'report_id' => $report->id,
             'resolution_type' => $resolutionType,
             'original_modifier' => $originalModifier?->id,
-            'current_modifier' => $user->id
+            'current_modifier' => $user->id,
         ]);
     }
 
@@ -525,7 +527,7 @@ class ConflictResolutionService
             'modified_by' => User::find($recentModification->modified_by)?->name ?? 'Unknown Admin',
             'modified_at' => $recentModification->modification_timestamp,
             'modified_fields' => $modifiedFields,
-            'platform' => $recentModification->user_platform ?? 'web'
+            'platform' => $recentModification->user_platform ?? 'web',
         ];
     }
 
@@ -543,7 +545,7 @@ class ConflictResolutionService
                 $newValue = $newData[$field] ?? '';
 
                 if ($existingValue && $newValue && $existingValue !== $newValue) {
-                    $mergedData[$field] = $existingValue . "\n\n[Updated: " . now()->format('Y-m-d H:i') . "]\n" . $newValue;
+                    $mergedData[$field] = $existingValue."\n\n[Updated: ".now()->format('Y-m-d H:i')."]\n".$newValue;
                 }
             } else {
                 // For other mergeable fields, use the new value
@@ -567,7 +569,7 @@ class ConflictResolutionService
         $notificationService = app(\App\Services\CrossPlatformNotificationService::class);
 
         foreach ($admins as $admin) {
-            $message = "Conflict detected on report #{$report->id} - '{$report->title}'. " .
+            $message = "Conflict detected on report #{$report->id} - '{$report->title}'. ".
                 "Manual review required for conflicting changes by {$user->name}.";
 
             $notificationService->sendNotification(
@@ -579,15 +581,15 @@ class ConflictResolutionService
                     'report_id' => $report->id,
                     'conflict_id' => $conflictRecordId,
                     'conflicting_user' => $user->name,
-                    'conflict_severity' => $conflictInfo['conflict_severity']
+                    'conflict_severity' => $conflictInfo['conflict_severity'],
                 ]
             );
         }
 
-        Log::info("Admin conflict notifications sent", [
+        Log::info('Admin conflict notifications sent', [
             'report_id' => $report->id,
             'conflict_id' => $conflictRecordId,
-            'admin_count' => $admins->count()
+            'admin_count' => $admins->count(),
         ]);
     }
 
@@ -617,7 +619,7 @@ class ConflictResolutionService
     public function detectConflict($reportId, $currentVersion, $proposedChanges, $userId)
     {
         $report = DisasterReport::find($reportId);
-        if (!$report) {
+        if (! $report) {
             throw new \Exception("Report not found with ID: $reportId");
         }
 
@@ -637,7 +639,7 @@ class ConflictResolutionService
                 'status' => 'pending_review',
                 'expires_at' => now()->addDays(7),
                 'created_at' => now(),
-                'updated_at' => now()
+                'updated_at' => now(),
             ]);
 
             return true;
@@ -668,7 +670,7 @@ class ConflictResolutionService
     {
         $conflict = DB::table('conflict_resolution_queue')->where('id', $conflictId)->first();
 
-        if (!$conflict) {
+        if (! $conflict) {
             throw new \Exception("Conflict not found with ID: $conflictId");
         }
 
@@ -709,7 +711,7 @@ class ConflictResolutionService
                     'resolution_action' => $resolutionAction,
                     'resolution_notes' => $notes,
                     'resolved_at' => now(),
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
             // Create audit trail
@@ -718,11 +720,12 @@ class ConflictResolutionService
                     'old' => 'pending',
                     'new' => 'resolved',
                     'action' => $resolutionAction,
-                    'notes' => $notes
-                ]
+                    'notes' => $notes,
+                ],
             ], 'Conflict resolved by admin');
 
             DB::commit();
+
             return true;
         } catch (\Exception $e) {
             DB::rollBack();
@@ -795,7 +798,7 @@ class ConflictResolutionService
             'user_agent' => request()->userAgent() ?? 'System',
             'modification_reason' => $reason,
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
     }
 }

@@ -13,8 +13,8 @@ $testCredentials = [
 ];
 
 foreach ($testCredentials as $index => $creds) {
-    echo "\nTest " . ($index + 1) . ": username='{$creds['username']}', password='{$creds['password']}'\n";
-    echo str_repeat("-", 60) . "\n";
+    echo "\nTest ".($index + 1).": username='{$creds['username']}', password='{$creds['password']}'\n";
+    echo str_repeat('-', 60)."\n";
 
     // Test login via web form
     $ch = curl_init();
@@ -36,24 +36,24 @@ foreach ($testCredentials as $index => $creds) {
 
     if ($httpCode == 200) {
         echo "✅ Authentication successful\n";
-        echo "Response: " . substr($response, 0, 200) . "...\n";
+        echo 'Response: '.substr($response, 0, 200)."...\n";
     } else {
         echo "❌ Authentication failed\n";
-        echo "Response: " . substr($response, 0, 300) . "...\n";
+        echo 'Response: '.substr($response, 0, 300)."...\n";
     }
 }
 
 // Test direct backend API to verify it's still working
-echo "\n" . str_repeat("=", 60) . "\n";
+echo "\n".str_repeat('=', 60)."\n";
 echo "Direct Backend API Test:\n";
-echo str_repeat("=", 60) . "\n";
+echo str_repeat('=', 60)."\n";
 
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, 'http://localhost:8000/api/v1/auth/login');
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
     'email' => 'admin@uat.test',
-    'password' => 'admin123'
+    'password' => 'admin123',
 ]));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [

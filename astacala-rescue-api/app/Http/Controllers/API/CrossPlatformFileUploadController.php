@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Services\CrossPlatformFileStorageService;
 use App\Models\DisasterReport;
 use App\Models\ReportImage;
 use App\Models\User;
+use App\Services\CrossPlatformFileStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +29,7 @@ class CrossPlatformFileUploadController extends Controller
 
     /**
      * Upload disaster report images - unified endpoint for mobile and web
-     * 
-     * @param Request $request
-     * @param int $reportId
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function uploadDisasterImages(Request $request, int $reportId)
@@ -41,31 +39,31 @@ class CrossPlatformFileUploadController extends Controller
             $validator = Validator::make($request->all(), [
                 'images' => 'required|array|min:1|max:10',
                 'images.*' => 'required|file|mimes:jpeg,jpg,png,webp,gif|max:10240', // 10MB max
-                'platform' => 'string|in:mobile,web'
+                'platform' => 'string|in:mobile,web',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
             // Check if disaster report exists and user has permission
             $report = DisasterReport::find($reportId);
-            if (!$report) {
+            if (! $report) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Disaster report not found'
+                    'message' => 'Disaster report not found',
                 ], Response::HTTP_NOT_FOUND);
             }
 
             // Check user permission
-            if (!$this->canUploadToReport($report)) {
+            if (! $this->canUploadToReport($report)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized to upload files to this report'
+                    'message' => 'Unauthorized to upload files to this report',
                 ], Response::HTTP_FORBIDDEN);
             }
 
@@ -97,7 +95,7 @@ class CrossPlatformFileUploadController extends Controller
                             'is_primary' => $index === 0, // First image is primary
                             'uploaded_by' => Auth::id(),
                             'platform' => $platform,
-                            'metadata' => json_encode($result['metadata'])
+                            'metadata' => json_encode($result['metadata']),
                         ]);
 
                         $uploadedImages[] = [
@@ -108,13 +106,13 @@ class CrossPlatformFileUploadController extends Controller
                             'file_size' => $result['file_info']['size'],
                             'file_size_human' => $result['file_info']['size_human'],
                             'is_primary' => $reportImage->is_primary,
-                            'upload_order' => $reportImage->upload_order
+                            'upload_order' => $reportImage->upload_order,
                         ];
                     } else {
                         $errors[] = [
                             'file_index' => $index,
                             'filename' => $imageFile->getClientOriginalName(),
-                            'error' => $result['error']
+                            'error' => $result['error'],
                         ];
                     }
                 }
@@ -124,12 +122,12 @@ class CrossPlatformFileUploadController extends Controller
                 // Update report's updated_at timestamp
                 $report->touch();
 
-                Log::info("Disaster images uploaded successfully", [
+                Log::info('Disaster images uploaded successfully', [
                     'report_id' => $reportId,
                     'platform' => $platform,
                     'uploaded_count' => count($uploadedImages),
                     'error_count' => count($errors),
-                    'user_id' => Auth::id()
+                    'user_id' => Auth::id(),
                 ]);
 
                 return response()->json([
@@ -140,33 +138,32 @@ class CrossPlatformFileUploadController extends Controller
                         'uploaded_images' => $uploadedImages,
                         'upload_count' => count($uploadedImages),
                         'errors' => $errors,
-                        'platform' => $platform
-                    ]
+                        'platform' => $platform,
+                    ],
                 ], Response::HTTP_CREATED);
             } catch (\Exception $e) {
                 DB::rollback();
                 throw $e;
             }
         } catch (\Exception $e) {
-            Log::error("Failed to upload disaster images", [
+            Log::error('Failed to upload disaster images', [
                 'report_id' => $reportId,
                 'platform' => $request->input('platform', 'mobile'),
                 'error' => $e->getMessage(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to upload images',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Upload user avatar - unified endpoint for mobile and web
-     * 
-     * @param Request $request
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function uploadUserAvatar(Request $request)
@@ -175,14 +172,14 @@ class CrossPlatformFileUploadController extends Controller
             // Validate request
             $validator = Validator::make($request->all(), [
                 'avatar' => 'required|file|mimes:jpeg,jpg,png,webp|max:5120', // 5MB max
-                'platform' => 'string|in:mobile,web'
+                'platform' => 'string|in:mobile,web',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
@@ -207,10 +204,10 @@ class CrossPlatformFileUploadController extends Controller
                 $user->profile_picture_url = $result['path'];
                 $user->save();
 
-                Log::info("User avatar uploaded successfully", [
+                Log::info('User avatar uploaded successfully', [
                     'user_id' => $user->id,
                     'platform' => $platform,
-                    'avatar_path' => $result['path']
+                    'avatar_path' => $result['path'],
                 ]);
 
                 return response()->json([
@@ -221,36 +218,34 @@ class CrossPlatformFileUploadController extends Controller
                         'filename' => $result['filename'],
                         'file_size' => $result['file_info']['size'],
                         'file_size_human' => $result['file_info']['size_human'],
-                        'platform' => $platform
-                    ]
+                        'platform' => $platform,
+                    ],
                 ], Response::HTTP_OK);
             } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to upload avatar',
-                    'error' => $result['error']
+                    'error' => $result['error'],
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
         } catch (\Exception $e) {
-            Log::error("Failed to upload user avatar", [
+            Log::error('Failed to upload user avatar', [
                 'user_id' => Auth::id(),
                 'platform' => $request->input('platform', 'mobile'),
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to upload avatar',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Upload document for disaster report
-     * 
-     * @param Request $request
-     * @param int $reportId
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function uploadDocument(Request $request, int $reportId)
@@ -260,30 +255,30 @@ class CrossPlatformFileUploadController extends Controller
             $validator = Validator::make($request->all(), [
                 'document' => 'required|file|mimes:pdf,doc,docx,txt|max:20480', // 20MB max
                 'platform' => 'string|in:mobile,web',
-                'document_type' => 'string|in:evidence,report,additional'
+                'document_type' => 'string|in:evidence,report,additional',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], Response::HTTP_UNPROCESSABLE_ENTITY);
             }
 
             // Check if disaster report exists and user has permission
             $report = DisasterReport::find($reportId);
-            if (!$report) {
+            if (! $report) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Disaster report not found'
+                    'message' => 'Disaster report not found',
                 ], Response::HTTP_NOT_FOUND);
             }
 
-            if (!$this->canUploadToReport($report)) {
+            if (! $this->canUploadToReport($report)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized to upload files to this report'
+                    'message' => 'Unauthorized to upload files to this report',
                 ], Response::HTTP_FORBIDDEN);
             }
 
@@ -308,16 +303,16 @@ class CrossPlatformFileUploadController extends Controller
                     'file_size' => $result['file_info']['size'],
                     'uploaded_by' => Auth::id(),
                     'uploaded_at' => now()->toIso8601String(),
-                    'platform' => $platform
+                    'platform' => $platform,
                 ];
 
                 $report->update(['metadata' => json_encode($metadata)]);
 
-                Log::info("Document uploaded successfully", [
+                Log::info('Document uploaded successfully', [
                     'report_id' => $reportId,
                     'platform' => $platform,
                     'document_path' => $result['path'],
-                    'user_id' => Auth::id()
+                    'user_id' => Auth::id(),
                 ]);
 
                 return response()->json([
@@ -329,37 +324,35 @@ class CrossPlatformFileUploadController extends Controller
                         'file_size' => $result['file_info']['size'],
                         'file_size_human' => $result['file_info']['size_human'],
                         'document_type' => $request->input('document_type', 'evidence'),
-                        'platform' => $platform
-                    ]
+                        'platform' => $platform,
+                    ],
                 ], Response::HTTP_CREATED);
             } else {
                 return response()->json([
                     'success' => false,
                     'message' => 'Failed to upload document',
-                    'error' => $result['error']
+                    'error' => $result['error'],
                 ], Response::HTTP_INTERNAL_SERVER_ERROR);
             }
         } catch (\Exception $e) {
-            Log::error("Failed to upload document", [
+            Log::error('Failed to upload document', [
                 'report_id' => $reportId,
                 'platform' => $request->input('platform', 'mobile'),
                 'error' => $e->getMessage(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to upload document',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Delete image from disaster report
-     * 
-     * @param int $reportId
-     * @param int $imageId
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function deleteImage(int $reportId, int $imageId)
@@ -369,19 +362,19 @@ class CrossPlatformFileUploadController extends Controller
                 ->where('id', $imageId)
                 ->first();
 
-            if (!$image) {
+            if (! $image) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Image not found'
+                    'message' => 'Image not found',
                 ], Response::HTTP_NOT_FOUND);
             }
 
             // Check permissions
             $report = $image->disasterReport;
-            if (!$this->canUploadToReport($report)) {
+            if (! $this->canUploadToReport($report)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unauthorized to delete this image'
+                    'message' => 'Unauthorized to delete this image',
                 ], Response::HTTP_FORBIDDEN);
             }
 
@@ -391,12 +384,12 @@ class CrossPlatformFileUploadController extends Controller
             // Delete database record
             $image->delete();
 
-            Log::info("Image deleted successfully", [
+            Log::info('Image deleted successfully', [
                 'report_id' => $reportId,
                 'image_id' => $imageId,
                 'image_path' => $image->image_path,
                 'file_deleted' => $fileDeleted,
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json([
@@ -404,28 +397,28 @@ class CrossPlatformFileUploadController extends Controller
                 'message' => 'Image deleted successfully',
                 'data' => [
                     'image_id' => $imageId,
-                    'file_deleted' => $fileDeleted
-                ]
+                    'file_deleted' => $fileDeleted,
+                ],
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
-            Log::error("Failed to delete image", [
+            Log::error('Failed to delete image', [
                 'report_id' => $reportId,
                 'image_id' => $imageId,
                 'error' => $e->getMessage(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete image',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Get storage statistics
-     * 
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getStorageStatistics()
@@ -436,27 +429,24 @@ class CrossPlatformFileUploadController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Storage statistics retrieved successfully',
-                'data' => $statistics
+                'data' => $statistics,
             ], Response::HTTP_OK);
         } catch (\Exception $e) {
-            Log::error("Failed to get storage statistics", [
+            Log::error('Failed to get storage statistics', [
                 'error' => $e->getMessage(),
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve storage statistics',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
      * Check if current user can upload files to the given report
-     * 
-     * @param DisasterReport $report
-     * @return bool
      */
     private function canUploadToReport(DisasterReport $report): bool
     {

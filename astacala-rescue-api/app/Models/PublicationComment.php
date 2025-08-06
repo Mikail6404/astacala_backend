@@ -15,11 +15,11 @@ class PublicationComment extends Model
         'user_id',
         'comment',
         'parent_id',
-        'status'
+        'status',
     ];
 
     protected $dates = [
-        'deleted_at'
+        'deleted_at',
     ];
 
     /**

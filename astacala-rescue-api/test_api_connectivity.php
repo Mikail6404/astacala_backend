@@ -18,7 +18,7 @@ $endpoints = [
 ];
 
 foreach ($endpoints as $name => $endpoint) {
-    $url = $baseUrl . $endpoint;
+    $url = $baseUrl.$endpoint;
     echo "Testing $name: $url\n";
 
     $ch = curl_init();

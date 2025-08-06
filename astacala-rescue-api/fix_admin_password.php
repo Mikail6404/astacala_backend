@@ -7,14 +7,14 @@ $password = 'admin123';
 $storedHash = '$2y$12$5K7PWsfl2XndrBRM/JmxcO1t9MmETyJbj1RSEb9VT1HDEZTwIgNsK';
 
 $isValid = password_verify($password, $storedHash);
-echo "Password 'admin123' valid: " . ($isValid ? 'YES' : 'NO') . "\n";
+echo "Password 'admin123' valid: ".($isValid ? 'YES' : 'NO')."\n";
 
 // Let's try other common passwords
 $passwords = ['admin123', 'password', 'admin', '123456', 'uat123'];
 
 foreach ($passwords as $pwd) {
     $valid = password_verify($pwd, $storedHash);
-    echo "Password '$pwd': " . ($valid ? 'VALID' : 'invalid') . "\n";
+    echo "Password '$pwd': ".($valid ? 'VALID' : 'invalid')."\n";
 }
 
 // Let's create a new hash for admin123 and update the user

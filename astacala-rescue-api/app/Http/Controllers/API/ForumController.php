@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\ForumMessage;
 use App\Models\DisasterReport;
-use Illuminate\Http\Request;
+use App\Models\ForumMessage;
+use Exception;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use Exception;
 
 class ForumController extends Controller
 {
@@ -33,13 +33,13 @@ class ForumController extends Controller
                         'total_pages' => $messages->lastPage(),
                         'total_messages' => $messages->total(),
                         'has_more' => $messages->hasMorePages(),
-                    ]
-                ]
+                    ],
+                ],
             ]);
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve forum messages: ' . $e->getMessage()
+                'message' => 'Failed to retrieve forum messages: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -67,14 +67,14 @@ class ForumController extends Controller
                 'disaster_report' => [
                     'id' => $disasterReport->id,
                     'title' => $disasterReport->title,
-                    'type' => $disasterReport->disaster_type
-                ]
+                    'type' => $disasterReport->disaster_type,
+                ],
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to retrieve forum messages',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -92,14 +92,14 @@ class ForumController extends Controller
                 'message' => 'required|string|max:1000',
                 'parent_message_id' => 'nullable|exists:forum_messages,id',
                 'message_type' => 'in:text,emergency,update,question',
-                'priority_level' => 'in:low,normal,high,emergency'
+                'priority_level' => 'in:low,normal,high,emergency',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -110,7 +110,7 @@ class ForumController extends Controller
                 'parent_message_id' => $request->parent_message_id,
                 'message' => $request->message,
                 'message_type' => $request->message_type ?? 'text',
-                'priority_level' => $request->priority_level ?? 'normal'
+                'priority_level' => $request->priority_level ?? 'normal',
             ]);
 
             // Load relationships for response
@@ -119,13 +119,13 @@ class ForumController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Message posted successfully',
-                'data' => $message
+                'data' => $message,
             ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to post message',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -142,20 +142,20 @@ class ForumController extends Controller
                 ->firstOrFail();
 
             $validator = Validator::make($request->all(), [
-                'message' => 'required|string|max:1000'
+                'message' => 'required|string|max:1000',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
             $message->update([
                 'message' => $request->message,
-                'edited_at' => now()
+                'edited_at' => now(),
             ]);
 
             $message->load(['user', 'replies.user']);
@@ -163,13 +163,13 @@ class ForumController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Message updated successfully',
-                'data' => $message
+                'data' => $message,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to update message',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -189,13 +189,13 @@ class ForumController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Message deleted successfully'
+                'message' => 'Message deleted successfully',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to delete message',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -208,14 +208,14 @@ class ForumController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'message_ids' => 'required|array',
-                'message_ids.*' => 'exists:forum_messages,id'
+                'message_ids.*' => 'exists:forum_messages,id',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -225,13 +225,13 @@ class ForumController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Messages marked as read'
+                'message' => 'Messages marked as read',
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to mark messages as read',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }
@@ -256,18 +256,18 @@ class ForumController extends Controller
                     ->count('user_id'),
                 'last_activity' => ForumMessage::forDisasterReport($disasterReportId)
                     ->latest()
-                    ->first()?->created_at
+                    ->first()?->created_at,
             ];
 
             return response()->json([
                 'status' => 'success',
-                'data' => $stats
+                'data' => $stats,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to retrieve statistics',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

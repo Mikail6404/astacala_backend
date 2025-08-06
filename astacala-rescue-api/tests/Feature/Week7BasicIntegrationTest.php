@@ -2,10 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\DisasterReport;
 
 class Week7BasicIntegrationTest extends TestCase
 {
@@ -33,26 +32,26 @@ class Week7BasicIntegrationTest extends TestCase
                 'locationName' => 'Test Location',
                 'estimatedAffected' => 50,
                 'incidentTimestamp' => now()->toISOString(),
-                'platform' => 'mobile'
+                'platform' => 'mobile',
             ]);
 
         if ($response->getStatusCode() !== 201) {
-            echo "❌ Failed to create report. Status: " . $response->getStatusCode() . "\n";
-            echo "Response: " . $response->getContent() . "\n";
-            $this->fail("Report creation failed");
+            echo '❌ Failed to create report. Status: '.$response->getStatusCode()."\n";
+            echo 'Response: '.$response->getContent()."\n";
+            $this->fail('Report creation failed');
         }
 
-        echo "✅ Report created successfully. Status: " . $response->getStatusCode() . "\n";
-        echo "Response data: " . $response->getContent() . "\n";
+        echo '✅ Report created successfully. Status: '.$response->getStatusCode()."\n";
+        echo 'Response data: '.$response->getContent()."\n";
 
         $responseData = $response->json();
-        if (!isset($responseData['data']['reportId'])) {
+        if (! isset($responseData['data']['reportId'])) {
             echo "❌ Response structure unexpected. Looking for ['data']['reportId']\n";
-            echo "Available keys in response: " . implode(', ', array_keys($responseData)) . "\n";
+            echo 'Available keys in response: '.implode(', ', array_keys($responseData))."\n";
             if (isset($responseData['data'])) {
-                echo "Available keys in data: " . implode(', ', array_keys($responseData['data'])) . "\n";
+                echo 'Available keys in data: '.implode(', ', array_keys($responseData['data']))."\n";
             }
-            $this->fail("Report ID not found in response");
+            $this->fail('Report ID not found in response');
         }
 
         $reportData = $responseData['data'];
@@ -75,7 +74,7 @@ class Week7BasicIntegrationTest extends TestCase
                 'status' => 'ACTIVE',
                 'verification_status' => 'verified',
                 'verification_notes' => 'Report verified by admin',
-                'platform' => 'web'
+                'platform' => 'web',
             ]);
 
         $updateResponse->assertStatus(200);

@@ -2,8 +2,6 @@
 
 namespace App\Http\Services;
 
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
 /**
@@ -31,7 +29,7 @@ class CrossPlatformDataMapper
             'incident_timestamp' => $this->validateTimestamp($mobileData['incident_timestamp'] ?? now()),
             'metadata' => $this->buildMobileMetadata($mobileData),
             'status' => 'PENDING',
-            'reported_by' => auth()->id()
+            'reported_by' => auth()->id(),
         ];
     }
 
@@ -54,7 +52,7 @@ class CrossPlatformDataMapper
             'incident_timestamp' => $this->validateTimestamp($webData['incident_timestamp'] ?? now()),
             'metadata' => $this->buildWebMetadata($webData),
             'status' => 'PENDING',
-            'reported_by' => auth()->id()
+            'reported_by' => auth()->id(),
         ];
     }
 
@@ -91,7 +89,7 @@ class CrossPlatformDataMapper
                     'is_primary' => $image->is_primary,
                 ];
             })->toArray(),
-            'metadata' => $this->extractMobileMetadata($report->metadata ?? [])
+            'metadata' => $this->extractMobileMetadata($report->metadata ?? []),
         ];
     }
 
@@ -106,24 +104,24 @@ class CrossPlatformDataMapper
             'description' => $report->description,
             'disaster_type' => [
                 'code' => $report->disaster_type,
-                'label' => $this->getDisasterTypeLabel($report->disaster_type)
+                'label' => $this->getDisasterTypeLabel($report->disaster_type),
             ],
             'severity_level' => [
                 'code' => $report->severity_level,
                 'label' => $this->getSeverityLabel($report->severity_level),
-                'color' => $this->getSeverityColor($report->severity_level)
+                'color' => $this->getSeverityColor($report->severity_level),
             ],
             'status' => [
                 'code' => $report->status,
                 'label' => $this->getStatusLabel($report->status),
-                'color' => $this->getStatusColor($report->status)
+                'color' => $this->getStatusColor($report->status),
             ],
             'location' => [
                 'latitude' => (float) $report->latitude,
                 'longitude' => (float) $report->longitude,
                 'name' => $report->location_name,
                 'address' => $report->address,
-                'coordinates' => [$report->longitude, $report->latitude] // GeoJSON format
+                'coordinates' => [$report->longitude, $report->latitude], // GeoJSON format
             ],
             'impact' => [
                 'estimated_affected' => $report->estimated_affected,
@@ -162,7 +160,7 @@ class CrossPlatformDataMapper
                 'verification_status' => $this->getVerificationStatus($report),
                 'assigned_team' => $report->assigned_to ?? null,
             ],
-            'metadata' => $this->extractWebMetadata($report->metadata ?? [])
+            'metadata' => $this->extractWebMetadata($report->metadata ?? []),
         ];
     }
 
@@ -427,7 +425,7 @@ class CrossPlatformDataMapper
             return $imageUrl; // For now, return original URL
         }
 
-        return asset('storage/thumbnails/' . basename($imageUrl));
+        return asset('storage/thumbnails/'.basename($imageUrl));
     }
 
     /**
@@ -468,10 +466,15 @@ class CrossPlatformDataMapper
 
         // Time urgency (more points for older reports)
         $hoursOld = $report->created_at->diffInHours(now());
-        if ($hoursOld > 48) $score += 20;
-        elseif ($hoursOld > 24) $score += 15;
-        elseif ($hoursOld > 12) $score += 10;
-        elseif ($hoursOld > 6) $score += 5;
+        if ($hoursOld > 48) {
+            $score += 20;
+        } elseif ($hoursOld > 24) {
+            $score += 15;
+        } elseif ($hoursOld > 12) {
+            $score += 10;
+        } elseif ($hoursOld > 6) {
+            $score += 5;
+        }
 
         return $score;
     }
@@ -484,7 +487,7 @@ class CrossPlatformDataMapper
         $metadata = $report->metadata ?? [];
         $verification = $metadata['verification'] ?? null;
 
-        if (!$verification) {
+        if (! $verification) {
             return [
                 'is_verified' => false,
                 'verified_by' => null,

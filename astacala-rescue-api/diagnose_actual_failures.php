@@ -10,8 +10,8 @@ $results = [];
 // Test 1: Authentication and Token Generation
 echo "🔑 Testing Authentication System...\n";
 $authTest = testAuthentication($baseUrl);
-if (!$authTest['success']) {
-    $errors[] = "Authentication failure: " . $authTest['error'];
+if (! $authTest['success']) {
+    $errors[] = 'Authentication failure: '.$authTest['error'];
 } else {
     $token = $authTest['token'];
     echo "  ✅ Authentication working, token acquired\n";
@@ -21,26 +21,26 @@ if (!$authTest['success']) {
 echo "\n🔄 Testing Data Synchronization...\n";
 if (isset($token)) {
     $syncTest = testDataSynchronization($baseUrl, $token);
-    if (!$syncTest['success']) {
-        $errors[] = "Data sync failure: " . $syncTest['error'];
+    if (! $syncTest['success']) {
+        $errors[] = 'Data sync failure: '.$syncTest['error'];
     } else {
         echo "  ✅ Data synchronization working\n";
     }
 } else {
-    $errors[] = "Cannot test data sync - authentication failed";
+    $errors[] = 'Cannot test data sync - authentication failed';
 }
 
 // Test 3: File Upload Functionality
 echo "\n📁 Testing File Upload System...\n";
 if (isset($token)) {
     $fileTest = testFileUpload($baseUrl, $token);
-    if (!$fileTest['success']) {
-        $errors[] = "File upload failure: " . $fileTest['error'];
+    if (! $fileTest['success']) {
+        $errors[] = 'File upload failure: '.$fileTest['error'];
     } else {
         echo "  ✅ File upload working\n";
     }
 } else {
-    $errors[] = "Cannot test file upload - authentication failed";
+    $errors[] = 'Cannot test file upload - authentication failed';
 }
 
 // Test 4: Performance Benchmarking
@@ -53,28 +53,28 @@ if (isset($token)) {
         echo "  ✅ Performance benchmarks met: {$perfTest['avg_time']}ms average\n";
     }
 } else {
-    $errors[] = "Cannot test performance - authentication failed";
+    $errors[] = 'Cannot test performance - authentication failed';
 }
 
 // Test 5: Database Integrity
 echo "\n🗄️ Testing Database Integrity...\n";
 $dbTest = testDatabaseIntegrity();
-if (!$dbTest['success']) {
-    $errors[] = "Database integrity failure: " . $dbTest['error'];
+if (! $dbTest['success']) {
+    $errors[] = 'Database integrity failure: '.$dbTest['error'];
 } else {
     echo "  ✅ Database integrity verified\n";
 }
 
 // Final Results
-echo "\n" . str_repeat("=", 50) . "\n";
+echo "\n".str_repeat('=', 50)."\n";
 echo "DIAGNOSTIC RESULTS:\n";
 
 if (empty($errors)) {
     echo "✅ ALL TESTS PASSED - System is working correctly\n";
 } else {
-    echo "❌ FOUND " . count($errors) . " CRITICAL ISSUES:\n\n";
+    echo '❌ FOUND '.count($errors)." CRITICAL ISSUES:\n\n";
     foreach ($errors as $i => $error) {
-        echo ($i + 1) . ". $error\n";
+        echo ($i + 1).". $error\n";
     }
     echo "\n🔧 THESE ISSUES NEED TO BE FIXED IN THE CODE\n";
 }
@@ -86,11 +86,11 @@ function testAuthentication($baseUrl)
     try {
         $data = [
             'email' => 'test@example.com',
-            'password' => 'password123'
+            'password' => 'password123',
         ];
 
         // Try to login with existing user or create one
-        $response = makeRequest('POST', $baseUrl . '/api/v1/auth/login', $data);
+        $response = makeRequest('POST', $baseUrl.'/api/v1/auth/login', $data);
 
         if (isset($response['access_token'])) {
             return ['success' => true, 'token' => $response['access_token']];
@@ -99,10 +99,10 @@ function testAuthentication($baseUrl)
         // If login fails, try registration
         $regData = array_merge($data, [
             'name' => 'Test User',
-            'password_confirmation' => 'password123'
+            'password_confirmation' => 'password123',
         ]);
 
-        $regResponse = makeRequest('POST', $baseUrl . '/api/v1/auth/register', $regData);
+        $regResponse = makeRequest('POST', $baseUrl.'/api/v1/auth/register', $regData);
 
         if (isset($regResponse['access_token'])) {
             return ['success' => true, 'token' => $regResponse['access_token']];
@@ -126,29 +126,29 @@ function testDataSynchronization($baseUrl, $token)
             'latitude' => -6.2088,
             'longitude' => 106.8456,
             'location_name' => 'Jakarta',
-            'address' => 'Test Address'
+            'address' => 'Test Address',
         ];
 
-        $createResponse = makeRequest('POST', $baseUrl . '/api/v1/reports', $reportData, $token);
+        $createResponse = makeRequest('POST', $baseUrl.'/api/v1/reports', $reportData, $token);
 
-        if (!isset($createResponse['id'])) {
-            return ['success' => false, 'error' => 'Failed to create report: ' . json_encode($createResponse)];
+        if (! isset($createResponse['id'])) {
+            return ['success' => false, 'error' => 'Failed to create report: '.json_encode($createResponse)];
         }
 
         $reportId = $createResponse['id'];
 
         // Test reading the report
-        $readResponse = makeRequest('GET', $baseUrl . '/api/v1/reports/' . $reportId, [], $token);
+        $readResponse = makeRequest('GET', $baseUrl.'/api/v1/reports/'.$reportId, [], $token);
 
-        if (!isset($readResponse['id'])) {
+        if (! isset($readResponse['id'])) {
             return ['success' => false, 'error' => 'Failed to read created report'];
         }
 
         // Test updating the report
         $updateData = ['title' => 'Updated Test Report'];
-        $updateResponse = makeRequest('PUT', $baseUrl . '/api/v1/reports/' . $reportId, $updateData, $token);
+        $updateResponse = makeRequest('PUT', $baseUrl.'/api/v1/reports/'.$reportId, $updateData, $token);
 
-        if (!$updateResponse) {
+        if (! $updateResponse) {
             return ['success' => false, 'error' => 'Failed to update report'];
         }
 
@@ -167,14 +167,14 @@ function testFileUpload($baseUrl, $token)
 
         // Test file upload endpoint
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $baseUrl . '/api/v1/files/avatar');
+        curl_setopt($ch, CURLOPT_URL, $baseUrl.'/api/v1/files/avatar');
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, [
-            'avatar' => new CURLFile($testFile, 'image/jpeg', 'test.jpg')
+            'avatar' => new CURLFile($testFile, 'image/jpeg', 'test.jpg'),
         ]);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $token,
-            'Accept: application/json'
+            'Authorization: Bearer '.$token,
+            'Accept: application/json',
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
@@ -201,13 +201,13 @@ function testPerformance($baseUrl, $token)
         '/api/v1/health',
         '/api/v1/auth/me',
         '/api/v1/reports',
-        '/api/v1/notifications'
+        '/api/v1/notifications',
     ];
 
     foreach ($testEndpoints as $endpoint) {
         for ($i = 0; $i < 5; $i++) {
             $start = microtime(true);
-            makeRequest('GET', $baseUrl . $endpoint, [], $token);
+            makeRequest('GET', $baseUrl.$endpoint, [], $token);
             $end = microtime(true);
             $times[] = ($end - $start) * 1000; // Convert to milliseconds
         }
@@ -218,7 +218,7 @@ function testPerformance($baseUrl, $token)
     return [
         'avg_time' => round($avgTime, 2),
         'min_time' => round(min($times), 2),
-        'max_time' => round(max($times), 2)
+        'max_time' => round(max($times), 2),
     ];
 }
 
@@ -253,7 +253,7 @@ function makeRequest($method, $url, $data = [], $token = null)
 
     $headers = ['Accept: application/json', 'Content-Type: application/json'];
     if ($token) {
-        $headers[] = 'Authorization: Bearer ' . $token;
+        $headers[] = 'Authorization: Bearer '.$token;
     }
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
@@ -275,7 +275,7 @@ function makeRequest($method, $url, $data = [], $token = null)
 
     $decoded = json_decode($response, true);
     if ($httpCode >= 400) {
-        throw new Exception("HTTP $httpCode: " . ($decoded['message'] ?? $response));
+        throw new Exception("HTTP $httpCode: ".($decoded['message'] ?? $response));
     }
 
     return $decoded;

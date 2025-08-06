@@ -2,18 +2,18 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
 use App\Http\Middleware\DualAuthenticationMiddleware;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Laravel\Sanctum\Sanctum;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
 
 /**
  * Dual Authentication Middleware Unit Tests
- * 
+ *
  * Comprehensive testing for the dual authentication middleware
  * Tests both JWT and session authentication paths
  */
@@ -22,18 +22,19 @@ class DualAuthenticationMiddlewareTest extends TestCase
     use RefreshDatabase;
 
     private $middleware;
+
     private $testUser;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->middleware = new DualAuthenticationMiddleware();
+        $this->middleware = new DualAuthenticationMiddleware;
 
         $this->testUser = User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'password' => Hash::make('password123')
+            'password' => Hash::make('password123'),
         ]);
     }
 

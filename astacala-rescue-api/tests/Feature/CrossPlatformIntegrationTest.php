@@ -2,24 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Http\Services\CrossPlatformDataMapper;
+use App\Http\Services\CrossPlatformValidator;
+use App\Models\DisasterReport;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
-use App\Models\User;
-use App\Models\DisasterReport;
-use App\Http\Services\CrossPlatformDataMapper;
-use App\Http\Services\CrossPlatformValidator;
-use Illuminate\Support\Facades\Hash;
 
 /**
  * Cross-Platform Integration Feature Tests
- * 
+ *
  * Tests the cross-platform integration components including:
  * - Data mapping between mobile and web formats
  * - Cross-platform validation service
  * - API endpoint integration
  * - Service layer functionality
- * 
+ *
  * @group integration
  * @group cross-platform
  */
@@ -28,7 +27,9 @@ class CrossPlatformIntegrationTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     protected $dataMapper;
+
     protected $crossValidator;
+
     protected $testUser;
 
     protected function setUp(): void
@@ -36,13 +37,13 @@ class CrossPlatformIntegrationTest extends TestCase
         parent::setUp();
 
         // Initialize services
-        $this->dataMapper = new CrossPlatformDataMapper();
-        $this->crossValidator = new CrossPlatformValidator();
+        $this->dataMapper = new CrossPlatformDataMapper;
+        $this->crossValidator = new CrossPlatformValidator;
 
         // Create test user
         $this->testUser = User::factory()->create([
             'email' => 'test@astacala.com',
-            'role' => 'VOLUNTEER'
+            'role' => 'VOLUNTEER',
         ]);
 
         $this->actingAs($this->testUser, 'sanctum');
@@ -50,8 +51,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test mobile data mapping to unified format
-     * 
+     *
      * @test
+     *
      * @group data-mapping
      */
     public function test_mobile_data_mapping_to_unified_format()
@@ -73,10 +75,10 @@ class CrossPlatformIntegrationTest extends TestCase
             'device_info' => [
                 'model' => 'Samsung Galaxy S21',
                 'os' => 'Android',
-                'os_version' => '12'
+                'os_version' => '12',
             ],
             'location_accuracy' => 5.2,
-            'network_type' => 'wifi'
+            'network_type' => 'wifi',
         ];
 
         // Act - Map mobile data to unified format
@@ -102,8 +104,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test web data mapping to unified format
-     * 
+     *
      * @test
+     *
      * @group data-mapping
      */
     public function test_web_data_mapping_to_unified_format()
@@ -125,7 +128,7 @@ class CrossPlatformIntegrationTest extends TestCase
             'personnel_count' => 25,
             'contact_phone' => '+628123456789',
             'submission_method' => 'web_dashboard',
-            'admin_notes' => 'High priority response required'
+            'admin_notes' => 'High priority response required',
         ];
 
         // Act - Map web data to unified format
@@ -148,8 +151,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test mobile report validation service
-     * 
+     *
      * @test
+     *
      * @group validation
      */
     public function test_mobile_report_validation_success()
@@ -164,7 +168,7 @@ class CrossPlatformIntegrationTest extends TestCase
             'longitude' => 106.8456,
             'location_name' => 'Jakarta',
             'incident_timestamp' => '2025-07-29T08:30:00Z',
-            'estimated_affected' => 100
+            'estimated_affected' => 100,
         ];
 
         // Act - Validate mobile report data
@@ -178,8 +182,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test mobile report validation with invalid data
-     * 
+     *
      * @test
+     *
      * @group validation
      */
     public function test_mobile_report_validation_failure()
@@ -203,8 +208,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test web report validation service
-     * 
+     *
      * @test
+     *
      * @group validation
      */
     public function test_web_report_validation_success()
@@ -220,7 +226,7 @@ class CrossPlatformIntegrationTest extends TestCase
             'location_name' => 'Bandung',
             'incident_timestamp' => '2025-07-29T09:15:00Z',
             'estimated_affected' => 250,
-            'team_name' => 'Emergency Response Team Alpha'
+            'team_name' => 'Emergency Response Team Alpha',
         ];
 
         // Act - Validate web report data
@@ -234,8 +240,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test unified data mapping for mobile response
-     * 
+     *
      * @test
+     *
      * @group response-mapping
      */
     public function test_unified_to_mobile_response_mapping()
@@ -250,7 +257,7 @@ class CrossPlatformIntegrationTest extends TestCase
             'longitude' => 106.8456,
             'location_name' => 'Test Location',
             'status' => 'VERIFIED',
-            'reported_by' => $this->testUser->id
+            'reported_by' => $this->testUser->id,
         ]);
 
         // Act - Map to mobile response format
@@ -281,8 +288,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test disaster type mapping standardization
-     * 
+     *
      * @test
+     *
      * @group data-mapping
      */
     public function test_disaster_type_mapping_standardization()
@@ -297,7 +305,7 @@ class CrossPlatformIntegrationTest extends TestCase
             'fire' => 'fire',
             'kebakaran' => 'fire',
             'landslide' => 'landslide',
-            'tanah_longsor' => 'landslide'
+            'tanah_longsor' => 'landslide',
         ];
 
         foreach ($testCases as $input => $expected) {
@@ -309,7 +317,7 @@ class CrossPlatformIntegrationTest extends TestCase
                 'latitude' => -6.2088,
                 'longitude' => 106.8456,
                 'location_name' => 'Test Location',
-                'incident_timestamp' => '2025-07-30T08:30:00Z'
+                'incident_timestamp' => '2025-07-30T08:30:00Z',
             ];
 
             $unifiedData = $this->dataMapper->mapMobileReportToUnified($mobileData);
@@ -323,8 +331,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test severity level mapping standardization
-     * 
+     *
      * @test
+     *
      * @group data-mapping
      */
     public function test_severity_level_mapping_standardization()
@@ -343,7 +352,7 @@ class CrossPlatformIntegrationTest extends TestCase
             '3' => 'high',
             'critical' => 'critical',
             'kritis' => 'critical',
-            '4' => 'critical'
+            '4' => 'critical',
         ];
 
         foreach ($testCases as $input => $expected) {
@@ -355,7 +364,7 @@ class CrossPlatformIntegrationTest extends TestCase
                 'latitude' => -6.2088,
                 'longitude' => 106.8456,
                 'location_name' => 'Test Location',
-                'incident_timestamp' => '2025-07-30T08:30:00Z'
+                'incident_timestamp' => '2025-07-30T08:30:00Z',
             ];
 
             $unifiedData = $this->dataMapper->mapMobileReportToUnified($mobileData);
@@ -369,8 +378,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test coordinate validation and sanitization
-     * 
+     *
      * @test
+     *
      * @group validation
      */
     public function test_coordinate_validation_and_sanitization()
@@ -392,7 +402,7 @@ class CrossPlatformIntegrationTest extends TestCase
                 'latitude' => $coords['lat'],
                 'longitude' => $coords['lng'],
                 'location_name' => 'Test Location',
-                'incident_timestamp' => '2025-07-29T08:30:00Z'
+                'incident_timestamp' => '2025-07-29T08:30:00Z',
             ];
 
             $validatedData = $this->crossValidator->validateMobileReport($mobileData);
@@ -403,8 +413,9 @@ class CrossPlatformIntegrationTest extends TestCase
 
     /**
      * Test comprehensive service integration
-     * 
+     *
      * @test
+     *
      * @group integration
      */
     public function test_comprehensive_service_integration()
@@ -426,10 +437,10 @@ class CrossPlatformIntegrationTest extends TestCase
             'device_info' => [
                 'model' => 'iPhone 13',
                 'os' => 'iOS',
-                'os_version' => '15.6'
+                'os_version' => '15.6',
             ],
             'location_accuracy' => 3.1,
-            'network_type' => 'cellular'
+            'network_type' => 'cellular',
         ];
 
         // Act - Full integration flow
@@ -442,7 +453,7 @@ class CrossPlatformIntegrationTest extends TestCase
         $this->assertIsArray($unifiedData);
 
         // 3. Create database record (simulated)
-        $report = new DisasterReport();
+        $report = new DisasterReport;
         $report->fill($unifiedData);
         $report->save();
 

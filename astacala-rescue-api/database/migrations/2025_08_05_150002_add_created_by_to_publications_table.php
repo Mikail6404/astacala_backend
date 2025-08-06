@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Adds missing fields to publications table for web dashboard compatibility
      */
     public function up(): void

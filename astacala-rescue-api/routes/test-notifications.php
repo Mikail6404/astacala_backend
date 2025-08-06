@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\User;
 use App\Models\DisasterReport;
+use App\Models\User;
 use App\Services\CrossPlatformNotificationService;
 use Illuminate\Support\Facades\Route;
 
@@ -23,7 +23,7 @@ Route::post('/test-notifications', function () {
                 'role' => 'VOLUNTEER',
                 'phone' => '1234567890',
                 'is_active' => true,
-                'email_verified' => true
+                'email_verified' => true,
             ]
         );
 
@@ -36,7 +36,7 @@ Route::post('/test-notifications', function () {
                 'role' => 'ADMIN',
                 'phone' => '1234567891',
                 'is_active' => true,
-                'email_verified' => true
+                'email_verified' => true,
             ]
         );
 
@@ -52,7 +52,7 @@ Route::post('/test-notifications', function () {
             'estimated_affected' => 100,
             'incident_timestamp' => now(),
             'reported_by' => $volunteer->id,
-            'status' => 'PENDING'
+            'status' => 'PENDING',
         ]);
 
         // Test 4: Send new report notification to admins
@@ -88,28 +88,28 @@ Route::post('/test-notifications', function () {
                     'count' => count($volunteerNotifications),
                     'unread_count' => $volunteerUnreadCount,
                     'platform' => 'mobile',
-                    'notifications' => array_slice($volunteerNotifications, 0, 3) // Show first 3
+                    'notifications' => array_slice($volunteerNotifications, 0, 3), // Show first 3
                 ],
                 'admin_notifications' => [
                     'count' => count($adminNotifications),
                     'unread_count' => $adminUnreadCount,
                     'platform' => 'web',
-                    'notifications' => array_slice($adminNotifications, 0, 3) // Show first 3
-                ]
+                    'notifications' => array_slice($adminNotifications, 0, 3), // Show first 3
+                ],
             ],
             'next_steps' => [
                 'mobile_app' => 'Use GET /api/v1/notifications?platform=mobile to fetch mobile notifications',
                 'web_dashboard' => 'Use GET /api/v1/notifications?platform=web to fetch web notifications',
                 'mark_read' => 'Use POST /api/v1/notifications/mark-read with notification IDs',
-                'fcm_token' => 'Use POST /api/v1/notifications/fcm-token to register push notification token'
-            ]
+                'fcm_token' => 'Use POST /api/v1/notifications/fcm-token to register push notification token',
+            ],
         ]);
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
             'message' => 'Notification system test failed',
             'error' => $e->getMessage(),
-            'trace' => config('app.debug') ? $e->getTraceAsString() : 'Enable debug mode to see trace'
+            'trace' => config('app.debug') ? $e->getTraceAsString() : 'Enable debug mode to see trace',
         ], 500);
     }
 });

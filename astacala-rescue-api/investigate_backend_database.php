@@ -16,7 +16,7 @@ try {
     $connection = DB::connection();
     $pdo = $connection->getPdo();
     echo "✅ Database connection successful!\n";
-    echo "   Database name: " . $connection->getDatabaseName() . "\n\n";
+    echo '   Database name: '.$connection->getDatabaseName()."\n\n";
 
     // List all tables
     echo "2. Listing all tables in database...\n";
@@ -33,17 +33,17 @@ try {
     echo "3. Checking users table structure...\n";
     if (in_array('users', $tableNames)) {
         $users = DB::table('users')->get();
-        echo "   Users found: " . $users->count() . "\n";
+        echo '   Users found: '.$users->count()."\n";
         if ($users->count() > 0) {
             echo "   Sample user data:\n";
             foreach ($users->take(5) as $user) {
-                echo "     - ID: {$user->id}, Email: {$user->email}, Name: " . ($user->name ?? 'N/A') . ", Role: " . ($user->role ?? 'N/A') . "\n";
+                echo "     - ID: {$user->id}, Email: {$user->email}, Name: ".($user->name ?? 'N/A').', Role: '.($user->role ?? 'N/A')."\n";
             }
         }
 
         // Check for admin users
         $adminUsers = DB::table('users')->where('role', 'admin')->get();
-        echo "   Admin users found: " . $adminUsers->count() . "\n";
+        echo '   Admin users found: '.$adminUsers->count()."\n";
         if ($adminUsers->count() > 0) {
             foreach ($adminUsers as $admin) {
                 echo "     - Admin: {$admin->email} ({$admin->name})\n";
@@ -57,7 +57,7 @@ try {
             ->orWhere('username', 'mikailadmin')
             ->first();
         if ($mikailadmin) {
-            echo "   ✅ mikailadmin user found: " . json_encode($mikailadmin) . "\n";
+            echo '   ✅ mikailadmin user found: '.json_encode($mikailadmin)."\n";
         } else {
             echo "   ❌ mikailadmin user NOT found\n";
         }
@@ -70,11 +70,11 @@ try {
     echo "4. Checking disaster_reports table...\n";
     if (in_array('disaster_reports', $tableNames)) {
         $reports = DB::table('disaster_reports')->get();
-        echo "   Disaster reports found: " . $reports->count() . "\n";
+        echo '   Disaster reports found: '.$reports->count()."\n";
         if ($reports->count() > 0) {
             echo "   Sample report data:\n";
             foreach ($reports->take(3) as $report) {
-                echo "     - ID: {$report->id}, Title: " . ($report->title ?? 'N/A') . ", Status: " . ($report->status ?? 'N/A') . "\n";
+                echo "     - ID: {$report->id}, Title: ".($report->title ?? 'N/A').', Status: '.($report->status ?? 'N/A')."\n";
             }
         }
     } else {
@@ -86,19 +86,19 @@ try {
     echo "5. Checking publications table...\n";
     if (in_array('publications', $tableNames)) {
         $publications = DB::table('publications')->get();
-        echo "   Publications found: " . $publications->count() . "\n";
+        echo '   Publications found: '.$publications->count()."\n";
         if ($publications->count() > 0) {
             echo "   Sample publication data:\n";
             foreach ($publications->take(3) as $pub) {
-                echo "     - ID: {$pub->id}, Title: " . ($pub->title ?? 'N/A') . ", Type: " . ($pub->type ?? 'N/A') . "\n";
+                echo "     - ID: {$pub->id}, Title: ".($pub->title ?? 'N/A').', Type: '.($pub->type ?? 'N/A')."\n";
             }
         }
     } else {
         echo "   ❌ publications table does not exist!\n";
     }
 } catch (Exception $e) {
-    echo "❌ Database error: " . $e->getMessage() . "\n";
-    echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
+    echo '❌ Database error: '.$e->getMessage()."\n";
+    echo "Stack trace:\n".$e->getTraceAsString()."\n";
 }
 
 echo "\n=== BACKEND API INVESTIGATION COMPLETE ===\n";

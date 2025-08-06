@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
 
 /**
  * Simplified Authentication Test
- * 
+ *
  * Quick validation of authentication components working
  */
 class AuthenticationQuickTest extends TestCase
@@ -24,13 +24,13 @@ class AuthenticationQuickTest extends TestCase
         // Create test user
         $user = User::factory()->create([
             'email' => 'test@example.com',
-            'password' => Hash::make('password123')
+            'password' => Hash::make('password123'),
         ]);
 
         // Test login
         $response = $this->postJson('/api/v1/auth/login', [
             'email' => 'test@example.com',
-            'password' => 'password123'
+            'password' => 'password123',
         ]);
 
         $response->assertStatus(200);
@@ -41,21 +41,21 @@ class AuthenticationQuickTest extends TestCase
                 'tokens' => [
                     'accessToken',
                     'tokenType',
-                    'expiresIn'
-                ]
-            ]
+                    'expiresIn',
+                ],
+            ],
         ]);
 
         // Test authenticated endpoint
         $token = $response->json('data.tokens.accessToken');
 
         $authResponse = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/v1/auth/me');
 
         $authResponse->assertStatus(200);
         $authResponse->assertJson([
-            'success' => true
+            'success' => true,
         ]);
     }
 

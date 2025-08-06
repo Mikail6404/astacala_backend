@@ -4,13 +4,13 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Cross-Platform API Rate Limiting Middleware
- * 
+ *
  * Implements rate limiting for mobile and web API endpoints
  * Different limits for different platforms and endpoint types
  */
@@ -19,10 +19,7 @@ class CrossPlatformRateLimitMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     * @param  string  $limiter
-     * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next, string $limiter = 'api'): Response
     {
@@ -40,7 +37,7 @@ class CrossPlatformRateLimitMiddleware
                 'user_agent' => $request->userAgent(),
                 'platform' => $this->getPlatform($request),
                 'endpoint' => $request->path(),
-                'retry_after' => $retryAfter
+                'retry_after' => $retryAfter,
             ]);
 
             return $this->buildRateLimitResponse($retryAfter, $maxAttempts, $decayMinutes);
@@ -103,12 +100,12 @@ class CrossPlatformRateLimitMiddleware
     {
         // Mobile user
         if ($request->get('authenticated_as') === 'mobile_user') {
-            return 'mobile_' . $request->get('user_id');
+            return 'mobile_'.$request->get('user_id');
         }
 
         // Web admin
         if ($request->get('authenticated_as') === 'web_admin') {
-            return 'web_admin_' . $request->get('admin_id');
+            return 'web_admin_'.$request->get('admin_id');
         }
 
         return null;
@@ -125,7 +122,7 @@ class CrossPlatformRateLimitMiddleware
             // Authentication endpoints - stricter limits
             'auth' => match ($platform) {
                 'mobile' => 5, // 5 login attempts per period
-                'web' => 3,    // 3 admin login attempts per period  
+                'web' => 3,    // 3 admin login attempts per period
                 default => 3
             },
 
@@ -185,12 +182,12 @@ class CrossPlatformRateLimitMiddleware
                 'max_attempts' => $maxAttempts,
                 'decay_minutes' => $decayMinutes,
                 'retry_after_seconds' => $retryAfter,
-                'retry_after_minutes' => ceil($retryAfter / 60)
+                'retry_after_minutes' => ceil($retryAfter / 60),
             ],
             'meta' => [
                 'timestamp' => now()->toISOString(),
-                'request_id' => request()->header('X-Request-ID', uniqid())
-            ]
+                'request_id' => request()->header('X-Request-ID', uniqid()),
+            ],
         ], 429, [
             'Retry-After' => $retryAfter,
             'X-RateLimit-Limit' => $maxAttempts,

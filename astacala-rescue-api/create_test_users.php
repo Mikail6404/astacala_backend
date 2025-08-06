@@ -18,11 +18,11 @@ $admin = User::firstOrCreate(
         'birth_date' => '1985-01-01',
         'place_of_birth' => 'Jakarta',
         'member_number' => 'ADMIN-001',
-        'organization' => 'Astacala Rescue'
+        'organization' => 'Astacala Rescue',
     ]
 );
 
-echo "Admin created: " . $admin->email . "\n";
+echo 'Admin created: '.$admin->email."\n";
 
 // Create volunteer users
 for ($i = 1; $i <= 3; $i++) {
@@ -34,15 +34,15 @@ for ($i = 1; $i <= 3; $i++) {
             'role' => 'volunteer',
             'is_active' => true,
             'email_verified_at' => now(),
-            'phone' => '+62812345678' . $i,
-            'birth_date' => '199' . $i . '-0' . $i . '-15',
-            'place_of_birth' => 'Test City ' . $i,
-            'member_number' => 'VOL-00' . $i,
-            'organization' => 'Test Organization'
+            'phone' => '+62812345678'.$i,
+            'birth_date' => '199'.$i.'-0'.$i.'-15',
+            'place_of_birth' => 'Test City '.$i,
+            'member_number' => 'VOL-00'.$i,
+            'organization' => 'Test Organization',
         ]
     );
 
-    echo "Volunteer created: " . $volunteer->email . "\n";
+    echo 'Volunteer created: '.$volunteer->email."\n";
 }
 
 echo "Test users ready!\n";

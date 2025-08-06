@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Temporary File Upload Controller - Basic Implementation
@@ -27,7 +27,7 @@ class BasicFileUploadController extends Controller
             $file = $request->file('avatar');
 
             // Generate unique filename
-            $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+            $filename = time().'_'.uniqid().'.'.$file->getClientOriginalExtension();
 
             // Store file in public storage
             $path = $file->storeAs('avatars', $filename, 'public');
@@ -47,19 +47,19 @@ class BasicFileUploadController extends Controller
                 'data' => [
                     'url' => $url,
                     'path' => $path,
-                    'filename' => $filename
-                ]
+                    'filename' => $filename,
+                ],
             ], 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $e->errors()
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Upload failed: ' . $e->getMessage()
+                'message' => 'Upload failed: '.$e->getMessage(),
             ], 500);
         }
     }

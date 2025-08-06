@@ -52,11 +52,11 @@ try {
             'role' => 'ADMIN',
             'email_verified_at' => now(),
             'created_at' => now(),
-            'updated_at' => now()
+            'updated_at' => now(),
         ]);
 
         echo "Admin user created successfully!\n";
     }
 } catch (Exception $e) {
-    echo "Error: " . $e->getMessage() . "\n";
+    echo 'Error: '.$e->getMessage()."\n";
 }

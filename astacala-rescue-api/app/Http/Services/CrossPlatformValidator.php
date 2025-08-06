@@ -154,11 +154,11 @@ class CrossPlatformValidator
 
         // Make some fields optional for updates
         if ($isUpdate) {
-            $rules['title'] = 'sometimes|' . $rules['title'];
-            $rules['content'] = 'sometimes|' . $rules['content'];
-            $rules['type'] = 'sometimes|' . $rules['type'];
-            $rules['category'] = 'sometimes|' . $rules['category'];
-            $rules['status'] = 'sometimes|' . $rules['status'];
+            $rules['title'] = 'sometimes|'.$rules['title'];
+            $rules['content'] = 'sometimes|'.$rules['content'];
+            $rules['type'] = 'sometimes|'.$rules['type'];
+            $rules['category'] = 'sometimes|'.$rules['category'];
+            $rules['status'] = 'sometimes|'.$rules['status'];
         }
 
         $validator = Validator::make($data, $rules, [
@@ -440,7 +440,7 @@ class CrossPlatformValidator
      */
     public function validateFileUpload($file, string $type = 'image'): bool
     {
-        if (!$file || !$file->isValid()) {
+        if (! $file || ! $file->isValid()) {
             return false;
         }
 

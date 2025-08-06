@@ -35,7 +35,7 @@ class UserController extends Controller
                 'joinedAt' => $user->created_at,
                 'isActive' => $user->is_active,
                 'lastLogin' => $user->last_login,
-            ]
+            ],
         ]);
     }
 
@@ -62,7 +62,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -86,7 +86,7 @@ class UserController extends Controller
                 'organization' => $user->organization,
                 'emergencyContacts' => $user->emergency_contacts ?? [],
                 'isActive' => $user->is_active,
-            ]
+            ],
         ]);
     }
 
@@ -103,7 +103,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -126,7 +126,7 @@ class UserController extends Controller
             'message' => 'Profile picture updated successfully',
             'data' => [
                 'profilePictureUrl' => $url,
-            ]
+            ],
         ]);
     }
 
@@ -137,10 +137,10 @@ class UserController extends Controller
     {
         $user = User::find($id);
 
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found'
+                'message' => 'User not found',
             ], 404);
         }
 
@@ -154,7 +154,7 @@ class UserController extends Controller
                 'isActive' => $user->is_active,
                 'joinedAt' => $user->created_at,
                 'lastLogin' => $user->last_login,
-            ]
+            ],
         ]);
     }
 
@@ -185,15 +185,15 @@ class UserController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Admin users retrieved successfully',
-                'data' => $users
+                'data' => $users,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('AdminList Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('AdminList Error: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error retrieving admin users: ' . $e->getMessage(),
-                'data' => []
+                'message' => 'Error retrieving admin users: '.$e->getMessage(),
+                'data' => [],
             ], 500);
         }
     }
@@ -212,15 +212,15 @@ class UserController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Volunteer users retrieved successfully',
-                'data' => $users
+                'data' => $users,
             ]);
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('VolunteerList Error: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('VolunteerList Error: '.$e->getMessage());
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error retrieving volunteer users: ' . $e->getMessage(),
-                'data' => []
+                'message' => 'Error retrieving volunteer users: '.$e->getMessage(),
+                'data' => [],
             ], 500);
         }
     }
@@ -248,7 +248,7 @@ class UserController extends Controller
                 'volunteer_users' => $volunteerUsers,
                 'new_users_this_month' => $newUsersThisMonth,
                 'inactive_users' => $totalUsers - $activeUsers,
-            ]
+            ],
         ]);
     }
 
@@ -269,7 +269,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -291,7 +291,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
-            ]
+            ],
         ], 201);
     }
 
@@ -308,15 +308,15 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $user = User::find($id);
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found'
+                'message' => 'User not found',
             ], 404);
         }
 
@@ -330,7 +330,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
-            ]
+            ],
         ]);
     }
 
@@ -347,15 +347,15 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $user = User::find($id);
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found'
+                'message' => 'User not found',
             ], 404);
         }
 
@@ -369,7 +369,7 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'is_active' => $user->is_active,
-            ]
+            ],
         ]);
     }
 
@@ -396,15 +396,15 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $user = User::find($id);
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not found'
+                'message' => 'User not found',
             ], 404);
         }
 
@@ -416,7 +416,7 @@ class UserController extends Controller
             'birth_date',
             'place_of_birth',
             'member_number',
-            'emergency_contacts'
+            'emergency_contacts',
         ]));
 
         return response()->json([
@@ -435,7 +435,7 @@ class UserController extends Controller
                 'role' => $user->role,
                 'emergency_contacts' => $user->emergency_contacts ?? [],
                 'is_active' => $user->is_active,
-            ]
+            ],
         ]);
     }
 
@@ -448,10 +448,10 @@ class UserController extends Controller
         try {
             $user = User::find($id);
 
-            if (!$user) {
+            if (! $user) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'User not found'
+                    'message' => 'User not found',
                 ], 404);
             }
 
@@ -460,7 +460,7 @@ class UserController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $user->role
+                'role' => $user->role,
             ];
 
             // Hard delete the user
@@ -469,24 +469,24 @@ class UserController extends Controller
             \Illuminate\Support\Facades\Log::info('User hard deleted', [
                 'admin_id' => $request->user()->id,
                 'deleted_user_id' => $id,
-                'deleted_user_data' => $userData
+                'deleted_user_data' => $userData,
             ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'User deleted successfully',
-                'data' => $userData
+                'data' => $userData,
             ]);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('User deletion failed', [
                 'user_id' => $id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error deleting user: ' . $e->getMessage()
+                'message' => 'Error deleting user: '.$e->getMessage(),
             ], 500);
         }
     }

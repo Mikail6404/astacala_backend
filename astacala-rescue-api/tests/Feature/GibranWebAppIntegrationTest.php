@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
-use App\Models\DisasterReport;
-use App\Http\Services\GibranWebAppAdapter;
 use App\Http\Services\CrossPlatformDataMapper;
+use App\Http\Services\GibranWebAppAdapter;
+use App\Models\DisasterReport;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Tests\TestCase;
 
 /**
  * Cross-Platform Integration Test Suite
@@ -21,7 +21,9 @@ class GibranWebAppIntegrationTest extends TestCase
     use RefreshDatabase;
 
     protected User $testUser;
+
     protected GibranWebAppAdapter $gibranAdapter;
+
     protected CrossPlatformDataMapper $dataMapper;
 
     protected function setUp(): void
@@ -36,7 +38,7 @@ class GibranWebAppIntegrationTest extends TestCase
         ]);
 
         // Initialize services
-        $this->gibranAdapter = new GibranWebAppAdapter();
+        $this->gibranAdapter = new GibranWebAppAdapter;
         $this->dataMapper = app(CrossPlatformDataMapper::class);
 
         // Fake storage for file upload tests
@@ -45,8 +47,9 @@ class GibranWebAppIntegrationTest extends TestCase
 
     /**
      * Test mobile app disaster report submission works unchanged
-     * 
+     *
      * @test
+     *
      * @group mobile-preservation
      */
     public function test_mobile_app_disaster_report_submission_unchanged()
@@ -78,7 +81,7 @@ class GibranWebAppIntegrationTest extends TestCase
                     'status',
                     'submittedAt',
                     'imageUrls',
-                ]
+                ],
             ]);
 
         // Verify report created in database
@@ -92,8 +95,9 @@ class GibranWebAppIntegrationTest extends TestCase
 
     /**
      * Test Gibran's web app can submit disaster reports
-     * 
+     *
      * @test
+     *
      * @group gibran-integration
      */
     public function test_gibran_web_app_pelaporan_submission()
@@ -134,8 +138,9 @@ class GibranWebAppIntegrationTest extends TestCase
     /**
      * Test cross-platform data visibility
      * Mobile reports should appear in Gibran's web dashboard
-     * 
+     *
      * @test
+     *
      * @group cross-platform-visibility
      */
     public function test_mobile_reports_visible_in_gibran_web_dashboard()
@@ -166,8 +171,8 @@ class GibranWebAppIntegrationTest extends TestCase
                         'severity_level',
                         'team_name',
                         'platform_info',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         // Verify specific mobile report is included
@@ -181,8 +186,9 @@ class GibranWebAppIntegrationTest extends TestCase
 
     /**
      * Test web dashboard report verification updates mobile status
-     * 
+     *
      * @test
+     *
      * @group cross-platform-sync
      */
     public function test_web_verification_updates_mobile_status()
@@ -227,14 +233,15 @@ class GibranWebAppIntegrationTest extends TestCase
                 'data' => [
                     'id' => $report->id,
                     'status' => 'VERIFIED',
-                ]
+                ],
             ]);
     }
 
     /**
      * Test Gibran's public berita-bencana endpoint
-     * 
+     *
      * @test
+     *
      * @group public-endpoints
      */
     public function test_gibran_public_berita_bencana_endpoint()
@@ -275,8 +282,8 @@ class GibranWebAppIntegrationTest extends TestCase
                         'pblk_lokasi_bencana',
                         'pblk_skala_bencana',
                         'deskripsi_umum',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         $newsData = $response->json('data');
@@ -291,8 +298,9 @@ class GibranWebAppIntegrationTest extends TestCase
 
     /**
      * Test Gibran web authentication compatibility
-     * 
+     *
      * @test
+     *
      * @group authentication
      */
     public function test_gibran_web_authentication_compatibility()
@@ -326,7 +334,7 @@ class GibranWebAppIntegrationTest extends TestCase
                     ],
                     'access_token',
                     'token_type',
-                ]
+                ],
             ]);
 
         $token = $response->json('data.access_token');
@@ -334,7 +342,7 @@ class GibranWebAppIntegrationTest extends TestCase
 
         // Verify token works for protected endpoints
         $protectedResponse = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/gibran/dashboard/statistics');
 
         $protectedResponse->assertStatus(200);
@@ -342,8 +350,9 @@ class GibranWebAppIntegrationTest extends TestCase
 
     /**
      * Test dashboard statistics for Gibran's admin panel
-     * 
+     *
      * @test
+     *
      * @group dashboard-stats
      */
     public function test_gibran_dashboard_statistics()
@@ -376,7 +385,7 @@ class GibranWebAppIntegrationTest extends TestCase
                         'kritis',
                     ],
                     'pelaporan_terbaru',
-                ]
+                ],
             ]);
 
         $stats = $response->json('data');
@@ -387,8 +396,9 @@ class GibranWebAppIntegrationTest extends TestCase
 
     /**
      * Test data mapping preserves both mobile and web formats
-     * 
+     *
      * @test
+     *
      * @group data-mapping
      */
     public function test_data_mapping_preserves_both_formats()
@@ -428,8 +438,9 @@ class GibranWebAppIntegrationTest extends TestCase
 
     /**
      * Test file upload handling for Gibran's web form
-     * 
+     *
      * @test
+     *
      * @group file-upload
      */
     public function test_gibran_web_form_file_upload()
@@ -468,8 +479,9 @@ class GibranWebAppIntegrationTest extends TestCase
 
     /**
      * Test error handling and validation
-     * 
+     *
      * @test
+     *
      * @group error-handling
      */
     public function test_validation_errors_properly_handled()
@@ -498,14 +510,15 @@ class GibranWebAppIntegrationTest extends TestCase
                     'informasi_singkat_bencana',
                     'lokasi_bencana',
                     'skala_bencana',
-                ]
+                ],
             ]);
     }
 
     /**
      * Test that existing mobile functionality is not broken
-     * 
+     *
      * @test
+     *
      * @group mobile-preservation
      */
     public function test_mobile_app_functionality_preserved()
@@ -527,7 +540,7 @@ class GibranWebAppIntegrationTest extends TestCase
 
         $mobileResponse->assertStatus(201);
 
-        // Test 2: Mobile report listing  
+        // Test 2: Mobile report listing
         $listResponse = $this->actingAs($this->testUser, 'sanctum')
             ->getJson('/api/v1/reports');
 
@@ -543,9 +556,9 @@ class GibranWebAppIntegrationTest extends TestCase
                             'disaster_type',
                             'severity_level',
                             'status',
-                        ]
-                    ]
-                ]
+                        ],
+                    ],
+                ],
             ]);
 
         // Test 3: Mobile statistics endpoint

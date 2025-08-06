@@ -53,7 +53,7 @@ return new class extends Migration
                 'is_primary',
                 'uploaded_by',
                 'platform',
-                'metadata'
+                'metadata',
             ]);
         });
     }

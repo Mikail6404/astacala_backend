@@ -29,10 +29,10 @@ try {
     $users = DB::table('users')->limit(3)->get();
     foreach ($users as $user) {
         echo "   User ID {$user->id}: {$user->name} ({$user->email})\n";
-        echo "     - Phone: " . ($user->phone ?? 'N/A') . "\n";
-        echo "     - Birth Date: " . ($user->birth_date ?? 'N/A') . "\n";
-        echo "     - Organization: " . ($user->organization ?? 'N/A') . "\n";
-        echo "     - Role: " . ($user->role ?? 'N/A') . "\n";
+        echo '     - Phone: '.($user->phone ?? 'N/A')."\n";
+        echo '     - Birth Date: '.($user->birth_date ?? 'N/A')."\n";
+        echo '     - Organization: '.($user->organization ?? 'N/A')."\n";
+        echo '     - Role: '.($user->role ?? 'N/A')."\n";
     }
 
     // 3. Check disaster_reports table structure
@@ -47,10 +47,10 @@ try {
     $reports = DB::table('disaster_reports')->limit(3)->get();
     foreach ($reports as $report) {
         echo "   Report ID {$report->id}: {$report->title}\n";
-        echo "     - Personnel Count: " . ($report->personnel_count ?? 'N/A') . "\n";
-        echo "     - Contact Phone: " . ($report->contact_phone ?? 'N/A') . "\n";
+        echo '     - Personnel Count: '.($report->personnel_count ?? 'N/A')."\n";
+        echo '     - Contact Phone: '.($report->contact_phone ?? 'N/A')."\n";
         echo "     - Coordinates: {$report->latitude}, {$report->longitude}\n";
-        echo "     - Team Name: " . ($report->team_name ?? 'N/A') . "\n";
+        echo '     - Team Name: '.($report->team_name ?? 'N/A')."\n";
     }
 
     // 5. Check publications table structure
@@ -65,8 +65,8 @@ try {
     $publications = DB::table('publications')->limit(3)->get();
     foreach ($publications as $pub) {
         echo "   Publication ID {$pub->id}: {$pub->title}\n";
-        echo "     - Author ID: " . ($pub->author_id ?? 'N/A') . "\n";
-        echo "     - Status: " . ($pub->status ?? 'N/A') . "\n";
+        echo '     - Author ID: '.($pub->author_id ?? 'N/A')."\n";
+        echo '     - Status: '.($pub->status ?? 'N/A')."\n";
     }
 
     // 7. Check notifications table structure
@@ -87,7 +87,7 @@ try {
         echo "   {$stat->role}: {$stat->count} users\n";
     }
 } catch (Exception $e) {
-    echo "❌ Database error: " . $e->getMessage() . "\n";
+    echo '❌ Database error: '.$e->getMessage()."\n";
 }
 
 echo "\n=== BACKEND DATABASE ANALYSIS COMPLETE ===\n";

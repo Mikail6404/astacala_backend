@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Dual Authentication Middleware
- * 
+ *
  * Handles both mobile JWT authentication and web session authentication
  * No role switching - just platform identification for backend API
  */
@@ -18,7 +18,6 @@ class DualAuthenticationMiddleware
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
@@ -29,7 +28,7 @@ class DualAuthenticationMiddleware
             'method' => $request->method(),
             'has_bearer_token' => $request->bearerToken() ? true : false,
             'has_session' => $request->hasSession(),
-            'session_admin_id' => $request->hasSession() ? $request->session()->get('admin_id') : null
+            'session_admin_id' => $request->hasSession() ? $request->session()->get('admin_id') : null,
         ]);
 
         // Handle mobile JWT tokens (existing system)
@@ -44,6 +43,7 @@ class DualAuthenticationMiddleware
             } else {
                 // Session exists but no admin_id - invalid session
                 Log::warning('DualAuthenticationMiddleware: Session exists but no admin_id found');
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid session - admin not logged in',
@@ -51,7 +51,7 @@ class DualAuthenticationMiddleware
                     'meta' => [
                         'timestamp' => now()->toISOString(),
                         'request_id' => $request->header('X-Request-ID', uniqid()),
-                    ]
+                    ],
                 ], 401);
             }
         }
@@ -65,7 +65,7 @@ class DualAuthenticationMiddleware
             'meta' => [
                 'timestamp' => now()->toISOString(),
                 'request_id' => $request->header('X-Request-ID', uniqid()),
-            ]
+            ],
         ], 401);
     }
 
@@ -78,12 +78,13 @@ class DualAuthenticationMiddleware
             // Use Laravel Sanctum for JWT authentication
             $user = Auth::guard('sanctum')->user();
 
-            if (!$user) {
+            if (! $user) {
                 Log::warning('DualAuthenticationMiddleware: Invalid JWT token');
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid or expired token',
-                    'error_code' => 'INVALID_TOKEN'
+                    'error_code' => 'INVALID_TOKEN',
                 ], 401);
             }
 
@@ -93,25 +94,25 @@ class DualAuthenticationMiddleware
                 'platform' => 'mobile',
                 'user_type' => 'volunteer',
                 'user_id' => $user->id,
-                'auth_method' => 'jwt_token'
+                'auth_method' => 'jwt_token',
             ]);
 
             Log::info('DualAuthenticationMiddleware: Mobile user authenticated', [
                 'user_id' => $user->id,
-                'user_email' => $user->email
+                'user_email' => $user->email,
             ]);
 
             return $next($request);
         } catch (\Exception $e) {
             Log::error('DualAuthenticationMiddleware: JWT authentication failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Authentication failed',
-                'error_code' => 'AUTH_FAILED'
+                'error_code' => 'AUTH_FAILED',
             ], 401);
         }
     }
@@ -124,12 +125,13 @@ class DualAuthenticationMiddleware
         try {
             $adminId = $request->session()->get('admin_id');
 
-            if (!$adminId) {
+            if (! $adminId) {
                 Log::warning('DualAuthenticationMiddleware: No admin_id in session');
+
                 return response()->json([
                     'success' => false,
                     'message' => 'Invalid session - admin not logged in',
-                    'error_code' => 'INVALID_SESSION'
+                    'error_code' => 'INVALID_SESSION',
                 ], 401);
             }
 
@@ -139,24 +141,24 @@ class DualAuthenticationMiddleware
                 'platform' => 'web',
                 'user_type' => 'admin',
                 'admin_id' => $adminId,
-                'auth_method' => 'session_cookie'
+                'auth_method' => 'session_cookie',
             ]);
 
             Log::info('DualAuthenticationMiddleware: Web admin authenticated', [
-                'admin_id' => $adminId
+                'admin_id' => $adminId,
             ]);
 
             return $next($request);
         } catch (\Exception $e) {
             Log::error('DualAuthenticationMiddleware: Session authentication failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Session authentication failed',
-                'error_code' => 'SESSION_AUTH_FAILED'
+                'error_code' => 'SESSION_AUTH_FAILED',
             ], 401);
         }
     }

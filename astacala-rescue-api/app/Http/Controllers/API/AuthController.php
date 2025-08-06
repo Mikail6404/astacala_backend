@@ -7,9 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -33,7 +32,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -63,9 +62,9 @@ class AuthController extends Controller
                 'tokens' => [
                     'accessToken' => $token,
                     'tokenType' => 'Bearer',
-                    'expiresIn' => 3600 // 1 hour
-                ]
-            ]
+                    'expiresIn' => 3600, // 1 hour
+                ],
+            ],
         ], 201);
     }
 
@@ -83,14 +82,14 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (! Auth::attempt($request->only('email', 'password'))) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ], 401);
         }
 
@@ -115,9 +114,9 @@ class AuthController extends Controller
                 'tokens' => [
                     'accessToken' => $token,
                     'tokenType' => 'Bearer',
-                    'expiresIn' => 3600
-                ]
-            ]
+                    'expiresIn' => 3600,
+                ],
+            ],
         ]);
     }
 
@@ -130,7 +129,7 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Logged out successfully'
+            'message' => 'Logged out successfully',
         ]);
     }
 
@@ -155,7 +154,7 @@ class AuthController extends Controller
                 'joinedAt' => $user->created_at,
                 'isActive' => $user->is_active,
                 'lastLogin' => $user->last_login,
-            ]
+            ],
         ]);
     }
 
@@ -165,14 +164,14 @@ class AuthController extends Controller
     public function forgotPassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email|exists:users,email'
+            'email' => 'required|email|exists:users,email',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -184,14 +183,14 @@ class AuthController extends Controller
         if ($status === Password::RESET_LINK_SENT) {
             return response()->json([
                 'success' => true,
-                'message' => 'Password reset link sent to your email address'
+                'message' => 'Password reset link sent to your email address',
             ]);
         }
 
         return response()->json([
             'success' => false,
             'message' => 'Unable to send reset link. Please try again.',
-            'error_code' => 'RESET_LINK_FAILED'
+            'error_code' => 'RESET_LINK_FAILED',
         ], 500);
     }
 
@@ -210,7 +209,7 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -227,14 +226,14 @@ class AuthController extends Controller
         if ($status === Password::PASSWORD_RESET) {
             return response()->json([
                 'success' => true,
-                'message' => 'Password has been reset successfully'
+                'message' => 'Password has been reset successfully',
             ]);
         }
 
         return response()->json([
             'success' => false,
             'message' => 'Failed to reset password. Invalid or expired token.',
-            'error_code' => 'RESET_FAILED'
+            'error_code' => 'RESET_FAILED',
         ], 400);
     }
 
@@ -252,27 +251,27 @@ class AuthController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
         $user = $request->user();
 
-        if (!Hash::check($request->current_password, $user->password)) {
+        if (! Hash::check($request->current_password, $user->password)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Current password is incorrect',
-                'error_code' => 'INVALID_CURRENT_PASSWORD'
+                'error_code' => 'INVALID_CURRENT_PASSWORD',
             ], 400);
         }
 
         $user->update([
-            'password' => Hash::make($request->new_password)
+            'password' => Hash::make($request->new_password),
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Password changed successfully'
+            'message' => 'Password changed successfully',
         ]);
     }
 }

@@ -9,7 +9,7 @@ echo "=================================\n";
 // Get fresh token
 $loginData = [
     'email' => 'admin@uat.test',
-    'password' => 'admin123'
+    'password' => 'admin123',
 ];
 
 $ch = curl_init();
@@ -43,10 +43,10 @@ if ($httpCode === 200) {
         echo "Testing $endpoint:\n";
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, 'http://localhost:8000' . $endpoint);
+        curl_setopt($ch, CURLOPT_URL, 'http://localhost:8000'.$endpoint);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: Bearer ' . $token,
+            'Authorization: Bearer '.$token,
             'Accept: application/json',
             'Content-Type: application/json',
         ]);
@@ -60,8 +60,8 @@ if ($httpCode === 200) {
             echo "  Response: $resp\n";
         } else {
             $decoded = json_decode($resp, true);
-            echo "  Success: " . ($decoded['success'] ? 'YES' : 'NO') . "\n";
-            echo "  Message: " . ($decoded['message'] ?? 'N/A') . "\n";
+            echo '  Success: '.($decoded['success'] ? 'YES' : 'NO')."\n";
+            echo '  Message: '.($decoded['message'] ?? 'N/A')."\n";
         }
         echo "\n";
     }

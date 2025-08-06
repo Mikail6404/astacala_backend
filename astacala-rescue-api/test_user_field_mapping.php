@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -27,8 +27,8 @@ if ($admin) {
     echo "  ID: {$admin->id}\n";
     echo "  Name: {$admin->name}\n";
     echo "  Email: {$admin->email}\n";
-    echo "  Place of Birth: " . ($admin->place_of_birth ?? 'NULL') . "\n";
-    echo "  Member Number: " . ($admin->member_number ?? 'NULL') . "\n";
+    echo '  Place of Birth: '.($admin->place_of_birth ?? 'NULL')."\n";
+    echo '  Member Number: '.($admin->member_number ?? 'NULL')."\n";
     echo "  Role: {$admin->role}\n\n";
 }
 
@@ -39,8 +39,8 @@ if ($volunteer) {
     echo "  ID: {$volunteer->id}\n";
     echo "  Name: {$volunteer->name}\n";
     echo "  Email: {$volunteer->email}\n";
-    echo "  Place of Birth: " . ($volunteer->place_of_birth ?? 'NULL') . "\n";
-    echo "  Member Number: " . ($volunteer->member_number ?? 'NULL') . "\n";
+    echo '  Place of Birth: '.($volunteer->place_of_birth ?? 'NULL')."\n";
+    echo '  Member Number: '.($volunteer->member_number ?? 'NULL')."\n";
     echo "  Role: {$volunteer->role}\n\n";
 }
 
@@ -65,9 +65,9 @@ $adminFields = DB::table('users')
     ->first();
 
 if ($adminFields) {
-    echo "  Available fields: " . implode(', ', array_keys((array)$adminFields)) . "\n";
-    echo "  place_of_birth: " . ($adminFields->place_of_birth ?? 'NULL') . "\n";
-    echo "  member_number: " . ($adminFields->member_number ?? 'NULL') . "\n\n";
+    echo '  Available fields: '.implode(', ', array_keys((array) $adminFields))."\n";
+    echo '  place_of_birth: '.($adminFields->place_of_birth ?? 'NULL')."\n";
+    echo '  member_number: '.($adminFields->member_number ?? 'NULL')."\n\n";
 }
 
 echo "✅ Field mapping test completed!\n";

@@ -23,7 +23,7 @@ curl_close($ch);
 preg_match('/<meta name="csrf-token" content="([^"]+)"/', $loginPage, $csrfMatches);
 $csrfToken = $csrfMatches[1] ?? '';
 
-echo "CSRF Token: " . ($csrfToken ? "Found" : "Not found") . "\n";
+echo 'CSRF Token: '.($csrfToken ? 'Found' : 'Not found')."\n";
 
 // Try login with form data
 echo "\n2. Submitting login form...\n";
@@ -87,12 +87,12 @@ if ($loginCode == 302 && str_contains($redirectUrl, 'dashboard')) {
             '/Dataadmin' => 'Admin Management',
             '/Datapengguna' => 'User Management',
             '/pelaporan' => 'Reporting Data',
-            '/publikasi' => 'Publication Management'
+            '/publikasi' => 'Publication Management',
         ];
 
         foreach ($adminFeatures as $url => $name) {
             $ch4 = curl_init();
-            curl_setopt($ch4, CURLOPT_URL, 'http://localhost:8001' . $url);
+            curl_setopt($ch4, CURLOPT_URL, 'http://localhost:8001'.$url);
             curl_setopt($ch4, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch4, CURLOPT_COOKIEJAR, $cookieJar);
             curl_setopt($ch4, CURLOPT_COOKIEFILE, $cookieJar);
@@ -114,7 +114,7 @@ if ($loginCode == 302 && str_contains($redirectUrl, 'dashboard')) {
     }
 } else {
     echo "❌ Login failed\n";
-    echo "Response: " . substr($loginResponse, 0, 300) . "...\n";
+    echo 'Response: '.substr($loginResponse, 0, 300)."...\n";
 }
 
 // Clean up

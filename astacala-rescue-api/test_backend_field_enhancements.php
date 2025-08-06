@@ -1,8 +1,8 @@
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
-$app = require_once __DIR__ . '/bootstrap/app.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
 $app->boot();
 
 echo "=== BACKEND FIELD ENHANCEMENTS VALIDATION ===\n\n";
@@ -13,9 +13,9 @@ $reports = \App\Models\DisasterReport::select('id', 'title', 'coordinate_display
 
 foreach ($reports as $report) {
     echo "   Report #{$report->id}: {$report->title}\n";
-    echo "     📍 Coordinates: " . ($report->coordinate_display ?? 'N/A') . "\n";
-    echo "     📞 Phone: " . ($report->reporter_phone ?? 'N/A') . "\n";
-    echo "     👤 Username: " . ($report->reporter_username ?? 'N/A') . "\n";
+    echo '     📍 Coordinates: '.($report->coordinate_display ?? 'N/A')."\n";
+    echo '     📞 Phone: '.($report->reporter_phone ?? 'N/A')."\n";
+    echo '     👤 Username: '.($report->reporter_username ?? 'N/A')."\n";
     echo "\n";
 }
 
@@ -25,8 +25,8 @@ $publications = \App\Models\Publication::select('id', 'title', 'created_by', 'cr
 
 foreach ($publications as $publication) {
     echo "   Publication #{$publication->id}: {$publication->title}\n";
-    echo "     👤 Created By ID: " . ($publication->created_by ?? 'N/A') . "\n";
-    echo "     👤 Creator Name: " . ($publication->creator_name ?? 'N/A') . "\n";
+    echo '     👤 Created By ID: '.($publication->created_by ?? 'N/A')."\n";
+    echo '     👤 Creator Name: '.($publication->creator_name ?? 'N/A')."\n";
     echo "\n";
 }
 
@@ -46,14 +46,14 @@ try {
         if ($publicationCount > 0) {
             $firstPub = $data['data'][0];
             $hasCreatorFields = isset($firstPub['created_by']) && isset($firstPub['creator_name']);
-            echo "      " . ($hasCreatorFields ? '✅' : '❌') . " Creator fields present: " .
-                ($hasCreatorFields ? "ID={$firstPub['created_by']}, Name={$firstPub['creator_name']}" : "Missing") . "\n";
+            echo '      '.($hasCreatorFields ? '✅' : '❌').' Creator fields present: '.
+                ($hasCreatorFields ? "ID={$firstPub['created_by']}, Name={$firstPub['creator_name']}" : 'Missing')."\n";
         }
     } else {
         echo "      ❌ Publications endpoint failed\n";
     }
 } catch (Exception $e) {
-    echo "      ❌ Publications endpoint error: " . $e->getMessage() . "\n";
+    echo '      ❌ Publications endpoint error: '.$e->getMessage()."\n";
 }
 
 // Test Gibran berita-bencana endpoint
@@ -69,7 +69,7 @@ try {
         echo "      ❌ Berita endpoint failed\n";
     }
 } catch (Exception $e) {
-    echo "      ❌ Berita endpoint error: " . $e->getMessage() . "\n";
+    echo '      ❌ Berita endpoint error: '.$e->getMessage()."\n";
 }
 
 // Test 4: Database counts

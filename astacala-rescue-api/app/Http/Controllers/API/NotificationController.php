@@ -7,9 +7,9 @@ use App\Models\Notification;
 use App\Models\User;
 use App\Services\CrossPlatformNotificationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class NotificationController extends Controller
 {
@@ -19,16 +19,17 @@ class NotificationController extends Controller
     {
         $this->notificationService = $notificationService;
     }
+
     /**
      * Get user notifications with cross-platform support.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not authenticated'
+                'message' => 'User not authenticated',
             ], 401);
         }
 
@@ -55,18 +56,18 @@ class NotificationController extends Controller
                     'perPage' => $limit,
                 ],
                 'unread_count' => $unreadCount,
-                'platform' => $platform
+                'platform' => $platform,
             ]);
         } catch (\Exception $e) {
-            Log::error("Error fetching notifications", [
+            Log::error('Error fetching notifications', [
                 'user_id' => $user->id,
                 'platform' => $platform,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to fetch notifications'
+                'message' => 'Failed to fetch notifications',
             ], 500);
         }
     }
@@ -77,10 +78,10 @@ class NotificationController extends Controller
     public function markAsRead(Request $request)
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not authenticated'
+                'message' => 'User not authenticated',
             ], 401);
         }
 
@@ -88,14 +89,14 @@ class NotificationController extends Controller
             'notificationIds' => 'sometimes|array',
             'notificationIds.*' => 'integer|exists:notifications,id',
             'markAll' => 'sometimes|boolean',
-            'platform' => 'sometimes|string|in:mobile,web'
+            'platform' => 'sometimes|string|in:mobile,web',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -112,7 +113,7 @@ class NotificationController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => "Marked {$updated} notifications as read"
+                    'message' => "Marked {$updated} notifications as read",
                 ]);
             } elseif ($request->markAll) {
                 $updated = Notification::where(function ($query) use ($user) {
@@ -123,28 +124,28 @@ class NotificationController extends Controller
                     ->where('data->platform', $platform)
                     ->update([
                         'is_read' => true,
-                        'read_at' => now()
+                        'read_at' => now(),
                     ]);
 
                 return response()->json([
                     'success' => true,
-                    'message' => "Marked {$updated} notifications as read"
+                    'message' => "Marked {$updated} notifications as read",
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Either notificationIds or markAll must be provided'
+                    'message' => 'Either notificationIds or markAll must be provided',
                 ], 422);
             }
         } catch (\Exception $e) {
-            Log::error("Error marking notifications as read", [
+            Log::error('Error marking notifications as read', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to mark notifications as read'
+                'message' => 'Failed to mark notifications as read',
             ], 500);
         }
     }
@@ -158,10 +159,10 @@ class NotificationController extends Controller
             ->where('recipient_id', $request->user()->id)
             ->first();
 
-        if (!$notification) {
+        if (! $notification) {
             return response()->json([
                 'success' => false,
-                'message' => 'Notification not found'
+                'message' => 'Notification not found',
             ], 404);
         }
 
@@ -169,7 +170,7 @@ class NotificationController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Notification deleted successfully'
+            'message' => 'Notification deleted successfully',
         ]);
     }
 
@@ -193,7 +194,7 @@ class NotificationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -202,7 +203,7 @@ class NotificationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Notification created successfully',
-            'data' => $notification
+            'data' => $notification,
         ], 201);
     }
 
@@ -212,10 +213,10 @@ class NotificationController extends Controller
     public function getUnreadCount(Request $request)
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not authenticated'
+                'message' => 'User not authenticated',
             ], 401);
         }
 
@@ -228,19 +229,19 @@ class NotificationController extends Controller
                 'success' => true,
                 'data' => [
                     'unread_count' => $unreadCount,
-                    'platform' => $platform
-                ]
+                    'platform' => $platform,
+                ],
             ]);
         } catch (\Exception $e) {
-            Log::error("Error getting unread count", [
+            Log::error('Error getting unread count', [
                 'user_id' => $user->id,
                 'platform' => $platform,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to get unread count'
+                'message' => 'Failed to get unread count',
             ], 500);
         }
     }
@@ -251,24 +252,24 @@ class NotificationController extends Controller
     public function sendUrgentNotification(Request $request)
     {
         $user = Auth::user();
-        if (!$user || $user->role !== 'ADMIN') {
+        if (! $user || $user->role !== 'ADMIN') {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Admin access required.'
+                'message' => 'Unauthorized. Admin access required.',
             ], 403);
         }
 
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'message' => 'required|string|max:1000',
-            'data' => 'sometimes|array'
+            'data' => 'sometimes|array',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -281,18 +282,18 @@ class NotificationController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Urgent notification sent to all users'
+                'message' => 'Urgent notification sent to all users',
             ]);
         } catch (\Exception $e) {
-            Log::error("Error sending urgent notification", [
+            Log::error('Error sending urgent notification', [
                 'admin_id' => $user->id,
                 'title' => $request->title,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to send urgent notification'
+                'message' => 'Failed to send urgent notification',
             ], 500);
         }
     }
@@ -304,22 +305,22 @@ class NotificationController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             return response()->json([
                 'success' => false,
-                'message' => 'User not authenticated'
+                'message' => 'User not authenticated',
             ], 401);
         }
 
         $validator = Validator::make($request->all(), [
-            'fcm_token' => 'required|string|max:500'
+            'fcm_token' => 'required|string|max:500',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
-                'errors' => $validator->errors()
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -327,24 +328,24 @@ class NotificationController extends Controller
             $user->fcm_token = $request->fcm_token;
             $user->save();
 
-            Log::info("FCM token updated", [
+            Log::info('FCM token updated', [
                 'user_id' => $user->id,
-                'token_length' => strlen($request->fcm_token)
+                'token_length' => strlen($request->fcm_token),
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'FCM token updated successfully'
+                'message' => 'FCM token updated successfully',
             ]);
         } catch (\Exception $e) {
-            Log::error("Error updating FCM token", [
+            Log::error('Error updating FCM token', [
                 'user_id' => $user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update FCM token'
+                'message' => 'Failed to update FCM token',
             ], 500);
         }
     }

@@ -2,13 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-use App\Models\User;
-use Carbon\Carbon;
 
 class BenchmarkAuthenticationCommand extends Command
 {
@@ -23,7 +19,9 @@ class BenchmarkAuthenticationCommand extends Command
     protected $description = 'Performance benchmarking for authentication endpoints';
 
     protected $baseUrl;
+
     protected $metrics = [];
+
     protected $startTime;
 
     public function __construct()
@@ -45,7 +43,7 @@ class BenchmarkAuthenticationCommand extends Command
         $endpoints = $this->option('endpoints');
         $output = $this->option('output');
 
-        $this->info("Configuration:");
+        $this->info('Configuration:');
         $this->line("- Concurrent Users: $users");
         $this->line("- Test Duration: {$duration}s");
         $this->line("- Endpoints: $endpoints");
@@ -80,6 +78,7 @@ class BenchmarkAuthenticationCommand extends Command
         $this->generateBenchmarkReport($output);
 
         $this->info('✅ Benchmarking completed');
+
         return 0;
     }
 
@@ -97,7 +96,7 @@ class BenchmarkAuthenticationCommand extends Command
                 'min_response_time' => PHP_FLOAT_MAX,
                 'max_response_time' => 0,
                 'p95_response_time' => 0,
-                'p99_response_time' => 0
+                'p99_response_time' => 0,
             ],
             'profile' => [
                 'total_requests' => 0,
@@ -110,7 +109,7 @@ class BenchmarkAuthenticationCommand extends Command
                 'min_response_time' => PHP_FLOAT_MAX,
                 'max_response_time' => 0,
                 'p95_response_time' => 0,
-                'p99_response_time' => 0
+                'p99_response_time' => 0,
             ],
             'mixed' => [
                 'total_requests' => 0,
@@ -123,15 +122,15 @@ class BenchmarkAuthenticationCommand extends Command
                 'min_response_time' => PHP_FLOAT_MAX,
                 'max_response_time' => 0,
                 'p95_response_time' => 0,
-                'p99_response_time' => 0
+                'p99_response_time' => 0,
             ],
             'system' => [
                 'memory_usage' => [],
                 'cpu_usage' => [],
                 'database_queries' => [],
                 'cache_hits' => 0,
-                'cache_misses' => 0
-            ]
+                'cache_misses' => 0,
+            ],
         ];
     }
 
@@ -176,11 +175,11 @@ class BenchmarkAuthenticationCommand extends Command
                         ->withHeaders([
                             'X-Platform' => 'mobile',
                             'Accept' => 'application/json',
-                            'Content-Type' => 'application/json'
+                            'Content-Type' => 'application/json',
                         ])
-                        ->post($this->baseUrl . '/api/login', [
+                        ->post($this->baseUrl.'/api/login', [
                             'email' => $email,
-                            'password' => $password
+                            'password' => $password,
                         ]);
 
                     $responseTime = (microtime(true) - $startTime) * 1000;
@@ -216,11 +215,11 @@ class BenchmarkAuthenticationCommand extends Command
                 $response = Http::timeout(10)
                     ->withHeaders([
                         'X-Platform' => 'mobile',
-                        'Accept' => 'application/json'
+                        'Accept' => 'application/json',
                     ])
-                    ->post($this->baseUrl . '/api/login', [
+                    ->post($this->baseUrl.'/api/login', [
                         'email' => $email,
-                        'password' => $password
+                        'password' => $password,
                     ]);
 
                 if ($response->successful()) {
@@ -228,12 +227,13 @@ class BenchmarkAuthenticationCommand extends Command
                     $tokens[] = $data['data']['tokens']['access_token'] ?? null;
                 }
             } catch (\Exception $e) {
-                $this->warn("Failed to get token for user $i: " . $e->getMessage());
+                $this->warn("Failed to get token for user $i: ".$e->getMessage());
             }
         }
 
         if (empty($tokens)) {
             $this->error('No valid tokens obtained for profile testing');
+
             return;
         }
 
@@ -250,11 +250,11 @@ class BenchmarkAuthenticationCommand extends Command
                 try {
                     $response = Http::timeout(10)
                         ->withHeaders([
-                            'Authorization' => 'Bearer ' . $token,
+                            'Authorization' => 'Bearer '.$token,
                             'X-Platform' => 'mobile',
-                            'Accept' => 'application/json'
+                            'Accept' => 'application/json',
                         ])
-                        ->get($this->baseUrl . '/api/profile');
+                        ->get($this->baseUrl.'/api/profile');
 
                     $responseTime = (microtime(true) - $startTime) * 1000;
                     $memoryAfter = memory_get_usage();
@@ -291,9 +291,9 @@ class BenchmarkAuthenticationCommand extends Command
             try {
                 $response = Http::timeout(10)
                     ->withHeaders(['X-Platform' => 'mobile', 'Accept' => 'application/json'])
-                    ->post($this->baseUrl . '/api/login', [
+                    ->post($this->baseUrl.'/api/login', [
                         'email' => $email,
-                        'password' => $password
+                        'password' => $password,
                     ]);
 
                 if ($response->successful()) {
@@ -312,12 +312,12 @@ class BenchmarkAuthenticationCommand extends Command
                 if ($action <= 40) {
                     // 40% login requests
                     $this->performLoginRequest($users);
-                } elseif ($action <= 80 && !empty($tokens)) {
+                } elseif ($action <= 80 && ! empty($tokens)) {
                     // 40% profile requests (if tokens available)
                     $this->performProfileRequest($tokens);
                 } else {
                     // 20% mixed other authenticated requests
-                    if (!empty($tokens)) {
+                    if (! empty($tokens)) {
                         $this->performMixedRequest($tokens);
                     } else {
                         $this->performLoginRequest($users);
@@ -345,9 +345,9 @@ class BenchmarkAuthenticationCommand extends Command
         try {
             $response = Http::timeout(5)
                 ->withHeaders(['X-Platform' => 'mobile', 'Accept' => 'application/json'])
-                ->post($this->baseUrl . '/api/login', [
+                ->post($this->baseUrl.'/api/login', [
                     'email' => $email,
-                    'password' => $password
+                    'password' => $password,
                 ]);
 
             $responseTime = (microtime(true) - $startTime) * 1000;
@@ -370,11 +370,11 @@ class BenchmarkAuthenticationCommand extends Command
         try {
             $response = Http::timeout(5)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $token,
+                    'Authorization' => 'Bearer '.$token,
                     'X-Platform' => 'mobile',
-                    'Accept' => 'application/json'
+                    'Accept' => 'application/json',
                 ])
-                ->get($this->baseUrl . '/api/profile');
+                ->get($this->baseUrl.'/api/profile');
 
             $responseTime = (microtime(true) - $startTime) * 1000;
             $memoryAfter = memory_get_usage();
@@ -399,11 +399,11 @@ class BenchmarkAuthenticationCommand extends Command
         try {
             $response = Http::timeout(5)
                 ->withHeaders([
-                    'Authorization' => 'Bearer ' . $token,
+                    'Authorization' => 'Bearer '.$token,
                     'X-Platform' => 'mobile',
-                    'Accept' => 'application/json'
+                    'Accept' => 'application/json',
                 ])
-                ->get($this->baseUrl . $endpoint);
+                ->get($this->baseUrl.$endpoint);
 
             $responseTime = (microtime(true) - $startTime) * 1000;
             $memoryAfter = memory_get_usage();
@@ -427,7 +427,7 @@ class BenchmarkAuthenticationCommand extends Command
             $this->metrics[$endpoint]['errors'][] = [
                 'status' => $response->status(),
                 'message' => $response->json()['message'] ?? 'Unknown error',
-                'response_time' => $responseTime
+                'response_time' => $responseTime,
             ];
         }
 
@@ -449,7 +449,7 @@ class BenchmarkAuthenticationCommand extends Command
         $this->metrics[$endpoint]['failed_requests']++;
         $this->metrics[$endpoint]['errors'][] = [
             'message' => $message,
-            'response_time' => $responseTime
+            'response_time' => $responseTime,
         ];
     }
 
@@ -507,30 +507,30 @@ class BenchmarkAuthenticationCommand extends Command
         $metrics = $this->metrics[$endpoint];
 
         $this->newLine();
-        $this->info(strtoupper($endpoint) . ' Endpoint Metrics:');
+        $this->info(strtoupper($endpoint).' Endpoint Metrics:');
         $this->line('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
         $successRate = $metrics['total_requests'] > 0
             ? round(($metrics['successful_requests'] / $metrics['total_requests']) * 100, 2)
             : 0;
 
-        $this->line("Total Requests: " . number_format($metrics['total_requests']));
-        $this->line("Successful: " . number_format($metrics['successful_requests']));
-        $this->line("Failed: " . number_format($metrics['failed_requests']));
+        $this->line('Total Requests: '.number_format($metrics['total_requests']));
+        $this->line('Successful: '.number_format($metrics['successful_requests']));
+        $this->line('Failed: '.number_format($metrics['failed_requests']));
         $this->line("Success Rate: {$successRate}%");
-        $this->line("Throughput: " . round($metrics['throughput'], 2) . " req/s");
+        $this->line('Throughput: '.round($metrics['throughput'], 2).' req/s');
 
-        if (!empty($metrics['response_times'])) {
-            $this->line("Response Times:");
-            $this->line("  Average: " . round($metrics['avg_response_time'], 2) . "ms");
-            $this->line("  Min: " . round($metrics['min_response_time'], 2) . "ms");
-            $this->line("  Max: " . round($metrics['max_response_time'], 2) . "ms");
-            $this->line("  95th Percentile: " . round($metrics['p95_response_time'], 2) . "ms");
-            $this->line("  99th Percentile: " . round($metrics['p99_response_time'], 2) . "ms");
+        if (! empty($metrics['response_times'])) {
+            $this->line('Response Times:');
+            $this->line('  Average: '.round($metrics['avg_response_time'], 2).'ms');
+            $this->line('  Min: '.round($metrics['min_response_time'], 2).'ms');
+            $this->line('  Max: '.round($metrics['max_response_time'], 2).'ms');
+            $this->line('  95th Percentile: '.round($metrics['p95_response_time'], 2).'ms');
+            $this->line('  99th Percentile: '.round($metrics['p99_response_time'], 2).'ms');
         }
 
-        if (!empty($metrics['errors'])) {
-            $this->line("Common Errors:");
+        if (! empty($metrics['errors'])) {
+            $this->line('Common Errors:');
             $errorCounts = [];
             foreach ($metrics['errors'] as $error) {
                 $key = $error['message'] ?? 'Unknown';
@@ -548,18 +548,18 @@ class BenchmarkAuthenticationCommand extends Command
         $this->info('SYSTEM Metrics:');
         $this->line('━━━━━━━━━━━━━━━━');
 
-        if (!empty($this->metrics['system']['memory_usage'])) {
+        if (! empty($this->metrics['system']['memory_usage'])) {
             $memoryUsage = $this->metrics['system']['memory_usage'];
             $avgMemory = array_sum($memoryUsage) / count($memoryUsage);
             $maxMemory = max($memoryUsage);
 
-            $this->line("Memory Usage:");
-            $this->line("  Average per request: " . $this->formatBytes($avgMemory));
-            $this->line("  Peak per request: " . $this->formatBytes($maxMemory));
+            $this->line('Memory Usage:');
+            $this->line('  Average per request: '.$this->formatBytes($avgMemory));
+            $this->line('  Peak per request: '.$this->formatBytes($maxMemory));
         }
 
         $totalTime = microtime(true) - $this->startTime;
-        $this->line("Total Test Duration: " . round($totalTime, 2) . "s");
+        $this->line('Total Test Duration: '.round($totalTime, 2).'s');
     }
 
     protected function displayRecommendations()
@@ -575,11 +575,11 @@ class BenchmarkAuthenticationCommand extends Command
             $metrics = $this->metrics[$endpoint];
 
             if ($metrics['avg_response_time'] > 1000) {
-                $recommendations[] = "⚠️ {$endpoint} endpoint avg response time is high (" . round($metrics['avg_response_time'], 2) . "ms). Consider optimization.";
+                $recommendations[] = "⚠️ {$endpoint} endpoint avg response time is high (".round($metrics['avg_response_time'], 2).'ms). Consider optimization.';
             }
 
             if ($metrics['p95_response_time'] > 2000) {
-                $recommendations[] = "⚠️ {$endpoint} endpoint 95th percentile is very high (" . round($metrics['p95_response_time'], 2) . "ms). Check for bottlenecks.";
+                $recommendations[] = "⚠️ {$endpoint} endpoint 95th percentile is very high (".round($metrics['p95_response_time'], 2).'ms). Check for bottlenecks.';
             }
 
             $successRate = $metrics['total_requests'] > 0
@@ -591,12 +591,12 @@ class BenchmarkAuthenticationCommand extends Command
             }
 
             if ($metrics['throughput'] < 10) {
-                $recommendations[] = "⚠️ {$endpoint} endpoint throughput is low (" . round($metrics['throughput'], 2) . " req/s). Consider scaling.";
+                $recommendations[] = "⚠️ {$endpoint} endpoint throughput is low (".round($metrics['throughput'], 2).' req/s). Consider scaling.';
             }
         }
 
         if (empty($recommendations)) {
-            $this->info("✅ All metrics look healthy! System is performing well.");
+            $this->info('✅ All metrics look healthy! System is performing well.');
         } else {
             foreach ($recommendations as $recommendation) {
                 $this->line($recommendation);
@@ -605,28 +605,29 @@ class BenchmarkAuthenticationCommand extends Command
 
         // General recommendations
         $this->newLine();
-        $this->line("💡 General Optimization Tips:");
-        $this->line("• Implement Redis caching for frequently accessed data");
-        $this->line("• Use database connection pooling");
-        $this->line("• Consider API rate limiting to prevent abuse");
-        $this->line("• Monitor database query performance");
-        $this->line("• Implement proper error handling and logging");
+        $this->line('💡 General Optimization Tips:');
+        $this->line('• Implement Redis caching for frequently accessed data');
+        $this->line('• Use database connection pooling');
+        $this->line('• Consider API rate limiting to prevent abuse');
+        $this->line('• Monitor database query performance');
+        $this->line('• Implement proper error handling and logging');
     }
 
     protected function formatBytes($bytes)
     {
         if ($bytes >= 1048576) {
-            return round($bytes / 1048576, 2) . ' MB';
+            return round($bytes / 1048576, 2).' MB';
         } elseif ($bytes >= 1024) {
-            return round($bytes / 1024, 2) . ' KB';
+            return round($bytes / 1024, 2).' KB';
         }
-        return $bytes . ' B';
+
+        return $bytes.' B';
     }
 
     protected function saveJsonReport()
     {
-        $filename = 'auth_benchmark_' . date('Y-m-d_H-i-s') . '.json';
-        $path = storage_path('logs/' . $filename);
+        $filename = 'auth_benchmark_'.date('Y-m-d_H-i-s').'.json';
+        $path = storage_path('logs/'.$filename);
 
         file_put_contents($path, json_encode($this->metrics, JSON_PRETTY_PRINT));
 
@@ -636,8 +637,8 @@ class BenchmarkAuthenticationCommand extends Command
 
     protected function saveCsvReport()
     {
-        $filename = 'auth_benchmark_' . date('Y-m-d_H-i-s') . '.csv';
-        $path = storage_path('logs/' . $filename);
+        $filename = 'auth_benchmark_'.date('Y-m-d_H-i-s').'.csv';
+        $path = storage_path('logs/'.$filename);
 
         $csv = fopen($path, 'w');
 
@@ -653,14 +654,16 @@ class BenchmarkAuthenticationCommand extends Command
             'Min Response Time (ms)',
             'Max Response Time (ms)',
             'P95 Response Time (ms)',
-            'P99 Response Time (ms)'
+            'P99 Response Time (ms)',
         ]);
 
         // Write data
         foreach (['login', 'profile', 'mixed'] as $endpoint) {
             $metrics = $this->metrics[$endpoint];
 
-            if ($metrics['total_requests'] === 0) continue;
+            if ($metrics['total_requests'] === 0) {
+                continue;
+            }
 
             $successRate = round(($metrics['successful_requests'] / $metrics['total_requests']) * 100, 2);
 
@@ -675,7 +678,7 @@ class BenchmarkAuthenticationCommand extends Command
                 round($metrics['min_response_time'], 2),
                 round($metrics['max_response_time'], 2),
                 round($metrics['p95_response_time'], 2),
-                round($metrics['p99_response_time'], 2)
+                round($metrics['p99_response_time'], 2),
             ]);
         }
 

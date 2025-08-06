@@ -2,12 +2,11 @@
 
 namespace Tests\Unit;
 
-use Tests\TestCase;
 use App\Console\Commands\TestAuthenticationCommand;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Http;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Tests\TestCase;
 
 class TestAuthenticationCommandTest extends TestCase
 {
@@ -21,14 +20,14 @@ class TestAuthenticationCommandTest extends TestCase
         User::factory()->create([
             'email' => 'test@astacala.com',
             'password' => bcrypt('Test123!@#'),
-            'name' => 'Test User'
+            'name' => 'Test User',
         ]);
     }
 
     public function test_command_signature_and_description()
     {
         // Test that the command exists and can be instantiated
-        $command = new TestAuthenticationCommand();
+        $command = new TestAuthenticationCommand;
 
         $this->assertInstanceOf(TestAuthenticationCommand::class, $command);
         $this->assertStringContainsString('auth:test', $command->getName());
@@ -49,23 +48,23 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'fake-jwt-token-12345'
-                    ]
-                ]
+                        'access_token' => 'fake-jwt-token-12345',
+                    ],
+                ],
             ], 200),
 
             '*/api/profile' => Http::response([
                 'success' => true,
                 'data' => [
                     'name' => 'Test User',
-                    'email' => 'test@astacala.com'
-                ]
+                    'email' => 'test@astacala.com',
+                ],
             ], 200),
 
             '*/api/logout' => Http::response([
                 'success' => true,
-                'message' => 'Logged out successfully'
-            ], 200)
+                'message' => 'Logged out successfully',
+            ], 200),
         ]);
 
         $this->artisan('auth:test mobile --email=test@astacala.com --password=Test123!@#')
@@ -80,7 +79,7 @@ class TestAuthenticationCommandTest extends TestCase
     {
         // Mock web login page response
         Http::fake([
-            '*/login' => Http::response('<html><body>Login Page</body></html>', 200)
+            '*/login' => Http::response('<html><body>Login Page</body></html>', 200),
         ]);
 
         $this->artisan('auth:test web')
@@ -96,25 +95,25 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'fake-jwt-token-12345'
-                    ]
-                ]
+                        'access_token' => 'fake-jwt-token-12345',
+                    ],
+                ],
             ], 200),
 
             '*/api/profile' => Http::response([
                 'success' => true,
                 'data' => [
                     'name' => 'Test User',
-                    'email' => 'test@astacala.com'
-                ]
+                    'email' => 'test@astacala.com',
+                ],
             ], 200),
 
             '*/api/logout' => Http::response([
                 'success' => true,
-                'message' => 'Logged out successfully'
+                'message' => 'Logged out successfully',
             ], 200),
 
-            '*/login' => Http::response('<html><body>Login Page</body></html>', 200)
+            '*/login' => Http::response('<html><body>Login Page</body></html>', 200),
         ]);
 
         $this->artisan('auth:test both')
@@ -130,22 +129,22 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'fake-jwt-token-12345'
-                    ]
-                ]
+                        'access_token' => 'fake-jwt-token-12345',
+                    ],
+                ],
             ], 200),
 
             '*/api/profile' => Http::response([
                 'success' => true,
                 'data' => [
                     'name' => 'Test User',
-                    'email' => 'loadtest1@astacala.com'
-                ]
+                    'email' => 'loadtest1@astacala.com',
+                ],
             ], 200),
 
             '*/api/logout' => Http::response([
-                'success' => true
-            ], 200)
+                'success' => true,
+            ], 200),
         ]);
 
         $this->artisan('auth:test mobile --load-test')
@@ -161,10 +160,10 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'fake-jwt-token-12345'
-                    ]
-                ]
-            ], 200)
+                        'access_token' => 'fake-jwt-token-12345',
+                    ],
+                ],
+            ], 200),
         ]);
 
         $this->artisan('auth:test mobile --network-test')
@@ -180,7 +179,7 @@ class TestAuthenticationCommandTest extends TestCase
                 ->push(['success' => false], 401)
                 ->push(['success' => false], 401)
                 ->push(['success' => false], 401)
-                ->push(['error' => 'Too Many Requests'], 429) // Rate limit triggered
+                ->push(['error' => 'Too Many Requests'], 429), // Rate limit triggered
         ]);
 
         $this->artisan('auth:test mobile --email=test@astacala.com --password=Test123!@#')
@@ -193,8 +192,8 @@ class TestAuthenticationCommandTest extends TestCase
         Http::fake([
             '*/api/login' => Http::response([
                 'success' => false,
-                'message' => 'Invalid credentials'
-            ], 401)
+                'message' => 'Invalid credentials',
+            ], 401),
         ]);
 
         $this->artisan('auth:test mobile --email=wrong@email.com --password=wrongpassword')
@@ -209,15 +208,15 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'valid-token'
-                    ]
-                ]
+                        'access_token' => 'valid-token',
+                    ],
+                ],
             ], 200),
 
             '*/api/profile' => Http::sequence()
                 ->push(['success' => true, 'data' => ['name' => 'Test User']], 200) // Valid token
                 ->push(['error' => 'Unauthorized'], 401) // Invalid token
-                ->push(['error' => 'Unauthorized'], 401) // After logout
+                ->push(['error' => 'Unauthorized'], 401), // After logout
         ]);
 
         $this->artisan('auth:test mobile --email=test@astacala.com --password=Test123!@#')
@@ -233,9 +232,9 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'valid-token'
-                    ]
-                ]
+                        'access_token' => 'valid-token',
+                    ],
+                ],
             ], 200),
 
             '*/api/profile' => Http::sequence()
@@ -245,8 +244,8 @@ class TestAuthenticationCommandTest extends TestCase
 
             '*/api/logout' => Http::response([
                 'success' => true,
-                'message' => 'Logged out successfully'
-            ], 200)
+                'message' => 'Logged out successfully',
+            ], 200),
         ]);
 
         $this->artisan('auth:test mobile --email=test@astacala.com --password=Test123!@#')
@@ -265,17 +264,17 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'test-token'
-                    ]
-                ]
+                        'access_token' => 'test-token',
+                    ],
+                ],
             ], 200),
 
             '*/api/profile' => Http::response([
                 'success' => true,
-                'data' => ['name' => 'Load Test User']
+                'data' => ['name' => 'Load Test User'],
             ], 200),
 
-            '*/api/logout' => Http::response(['success' => true], 200)
+            '*/api/logout' => Http::response(['success' => true], 200),
         ]);
 
         $this->artisan('auth:test mobile --load-test')
@@ -288,7 +287,7 @@ class TestAuthenticationCommandTest extends TestCase
         Http::fake([
             '*/api/login' => function () {
                 throw new \Illuminate\Http\Client\ConnectionException('Connection timeout');
-            }
+            },
         ]);
 
         $this->artisan('auth:test mobile --network-test')
@@ -299,7 +298,7 @@ class TestAuthenticationCommandTest extends TestCase
     public function test_test_user_creation()
     {
         $this->assertDatabaseMissing('users', [
-            'email' => 'newtest@astacala.com'
+            'email' => 'newtest@astacala.com',
         ]);
 
         Http::fake([
@@ -307,10 +306,10 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'test-token'
-                    ]
-                ]
-            ], 200)
+                        'access_token' => 'test-token',
+                    ],
+                ],
+            ], 200),
         ]);
 
         $this->artisan('auth:test mobile --email=newtest@astacala.com --password=NewTest123!')
@@ -318,7 +317,7 @@ class TestAuthenticationCommandTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'email' => 'newtest@astacala.com',
-            'name' => 'Test User (Mobile)'
+            'name' => 'Test User (Mobile)',
         ]);
     }
 
@@ -329,17 +328,17 @@ class TestAuthenticationCommandTest extends TestCase
                 'success' => true,
                 'data' => [
                     'tokens' => [
-                        'access_token' => 'test-token'
-                    ]
-                ]
+                        'access_token' => 'test-token',
+                    ],
+                ],
             ], 200),
 
             '*/api/profile' => Http::response([
                 'success' => true,
-                'data' => ['name' => 'Test User']
+                'data' => ['name' => 'Test User'],
             ], 200),
 
-            '*/api/logout' => Http::response(['success' => true], 200)
+            '*/api/logout' => Http::response(['success' => true], 200),
         ]);
 
         $this->artisan('auth:test mobile --email=test@astacala.com --password=Test123!@#')
@@ -352,8 +351,8 @@ class TestAuthenticationCommandTest extends TestCase
         Http::fake([
             '*/api/profile' => Http::response([
                 'success' => true,
-                'data' => ['name' => 'Test User']
-            ], 200)
+                'data' => ['name' => 'Test User'],
+            ], 200),
         ]);
 
         $this->artisan('auth:test mobile --token=custom-token-12345')

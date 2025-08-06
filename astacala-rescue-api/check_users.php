@@ -8,7 +8,7 @@ $dotenv->load();
 
 // Setup database connection
 $pdo = new PDO(
-    "mysql:host=" . $_ENV['DB_HOST'] . ";dbname=" . $_ENV['DB_DATABASE'],
+    'mysql:host='.$_ENV['DB_HOST'].';dbname='.$_ENV['DB_DATABASE'],
     $_ENV['DB_USERNAME'],
     $_ENV['DB_PASSWORD']
 );
@@ -16,13 +16,13 @@ $pdo = new PDO(
 echo "=== CHECKING USERS IN DATABASE ===\n\n";
 
 // Get all users
-$stmt = $pdo->query("SELECT id, nama_lengkap, email, role, status, created_at FROM users");
+$stmt = $pdo->query('SELECT id, nama_lengkap, email, role, status, created_at FROM users');
 $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (empty($users)) {
     echo "❌ No users found in database\n";
 } else {
-    echo "Found " . count($users) . " users:\n\n";
+    echo 'Found '.count($users)." users:\n\n";
 
     foreach ($users as $user) {
         echo "ID: {$user['id']}\n";
@@ -38,9 +38,9 @@ if (empty($users)) {
     $adminStmt = $pdo->query("SELECT * FROM users WHERE role = 'admin'");
     $admins = $adminStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo "\nAdmin users found: " . count($admins) . "\n";
+    echo "\nAdmin users found: ".count($admins)."\n";
 
-    if (!empty($admins)) {
+    if (! empty($admins)) {
         echo "\nFirst admin credentials for testing:\n";
         $firstAdmin = $admins[0];
         echo "Email: {$firstAdmin['email']}\n";

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Adds missing web app compatibility fields to users table
      * that are required for proper dashboard functionality.
      */

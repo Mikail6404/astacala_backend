@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\User;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 
 class DiagnoseAuth extends Command
@@ -40,14 +40,14 @@ class DiagnoseAuth extends Command
                 'name' => 'Test User',
                 'email' => 'test@example.com',
                 'password' => Hash::make('password123'),
-                'role' => 'VOLUNTEER'
+                'role' => 'VOLUNTEER',
             ]);
 
             $this->info("Test user created: {$testUser->email}");
         } else {
             $firstUser = User::first();
             $this->info("First user email: {$firstUser->email}");
-            $this->info("Password hash exists: " . (!empty($firstUser->password) ? 'YES' : 'NO'));
+            $this->info('Password hash exists: '.(! empty($firstUser->password) ? 'YES' : 'NO'));
 
             // Test password verification
             if (Hash::check('password123', $firstUser->password)) {
@@ -71,16 +71,16 @@ class DiagnoseAuth extends Command
         // Simulate login request
         $credentials = [
             'email' => $testEmail,
-            'password' => 'password123'
+            'password' => 'password123',
         ];
 
         if (auth()->attempt($credentials)) {
-            $this->info("✅ Auth::attempt() works!");
+            $this->info('✅ Auth::attempt() works!');
             $user = auth()->user();
             $token = $user->createToken('diagnostic')->plainTextToken;
-            $this->info("✅ Token created: " . substr($token, 0, 20) . "...");
+            $this->info('✅ Token created: '.substr($token, 0, 20).'...');
         } else {
-            $this->error("❌ Auth::attempt() failed!");
+            $this->error('❌ Auth::attempt() failed!');
         }
 
         return 0;

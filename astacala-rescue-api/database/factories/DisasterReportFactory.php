@@ -51,8 +51,8 @@ class DisasterReportFactory extends Factory
                 'device_info' => [
                     'model' => $this->faker->randomElement(['iPhone 13', 'Samsung Galaxy S21', 'Google Pixel 6']),
                     'os' => $this->faker->randomElement(['iOS', 'Android']),
-                    'os_version' => $this->faker->randomElement(['15.6', '12.0', '13.0'])
-                ]
+                    'os_version' => $this->faker->randomElement(['15.6', '12.0', '13.0']),
+                ],
             ],
             'created_at' => now(),
             'updated_at' => now(),
@@ -64,7 +64,7 @@ class DisasterReportFactory extends Factory
      */
     public function pending(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => 'PENDING',
             'verified_by_admin_id' => null,
             'verification_notes' => null,
@@ -76,7 +76,7 @@ class DisasterReportFactory extends Factory
      */
     public function verified(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => 'VERIFIED',
             'verified_by_admin_id' => User::factory(),
             'verification_notes' => $this->faker->sentence(),
@@ -88,7 +88,7 @@ class DisasterReportFactory extends Factory
      */
     public function resolved(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'status' => 'RESOLVED',
             'verified_by_admin_id' => User::factory(),
             'verification_notes' => $this->faker->paragraph(),
@@ -100,7 +100,7 @@ class DisasterReportFactory extends Factory
      */
     public function fromMobile(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'metadata' => [
                 'source_platform' => 'mobile',
                 'submission_method' => 'mobile_app',
@@ -108,11 +108,11 @@ class DisasterReportFactory extends Factory
                 'device_info' => [
                     'model' => $this->faker->randomElement(['iPhone 13', 'Samsung Galaxy S21', 'Google Pixel 6']),
                     'os' => $this->faker->randomElement(['iOS', 'Android']),
-                    'os_version' => $this->faker->randomElement(['15.6', '12.0', '13.0'])
+                    'os_version' => $this->faker->randomElement(['15.6', '12.0', '13.0']),
                 ],
                 'location_accuracy' => $this->faker->randomFloat(2, 1, 10),
-                'network_type' => $this->faker->randomElement(['wifi', 'cellular'])
-            ]
+                'network_type' => $this->faker->randomElement(['wifi', 'cellular']),
+            ],
         ]);
     }
 
@@ -121,15 +121,15 @@ class DisasterReportFactory extends Factory
      */
     public function fromWeb(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'metadata' => [
                 'source_platform' => 'web',
                 'submission_method' => 'web_dashboard',
                 'team_name' => $this->faker->company(),
                 'personnel_count' => $this->faker->numberBetween(5, 50),
                 'contact_phone' => $this->faker->phoneNumber(),
-                'admin_notes' => $this->faker->sentence()
-            ]
+                'admin_notes' => $this->faker->sentence(),
+            ],
         ]);
     }
 
@@ -138,10 +138,10 @@ class DisasterReportFactory extends Factory
      */
     public function highSeverity(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'severity_level' => 'high',
             'estimated_affected' => $this->faker->numberBetween(100, 1000),
-            'disaster_type' => $this->faker->randomElement(['earthquake', 'tsunami', 'volcano', 'hurricane'])
+            'disaster_type' => $this->faker->randomElement(['earthquake', 'tsunami', 'volcano', 'hurricane']),
         ]);
     }
 
@@ -150,10 +150,10 @@ class DisasterReportFactory extends Factory
      */
     public function critical(): static
     {
-        return $this->state(fn(array $attributes) => [
+        return $this->state(fn (array $attributes) => [
             'severity_level' => 'critical',
             'estimated_affected' => $this->faker->numberBetween(500, 5000),
-            'disaster_type' => $this->faker->randomElement(['earthquake', 'tsunami', 'volcano'])
+            'disaster_type' => $this->faker->randomElement(['earthquake', 'tsunami', 'volcano']),
         ]);
     }
 }

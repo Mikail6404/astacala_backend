@@ -12,7 +12,7 @@ curl_setopt($ch, CURLOPT_URL, 'http://localhost:8001/login');
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
     'username' => 'admin',
-    'password' => 'admin'
+    'password' => 'admin',
 ]));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
@@ -28,7 +28,7 @@ if ($httpCode == 200) {
     echo "✅ Login successful!\n";
 } else {
     echo "❌ Login failed\n";
-    echo substr($response, 0, 500) . "...\n";
+    echo substr($response, 0, 500)."...\n";
 }
 
 // Test 2: Access dashboard
@@ -57,7 +57,7 @@ $adminFeatures = [
     '/Dataadmin' => 'Admin Management',
     '/Datapengguna' => 'User Management',
     '/pelaporan' => 'Reporting Data',
-    '/publikasi' => 'Publication Management'
+    '/publikasi' => 'Publication Management',
 ];
 
 echo "\n3. Testing admin features...\n";
@@ -66,7 +66,7 @@ foreach ($adminFeatures as $url => $name) {
     echo "Testing $name ($url)...\n";
 
     $ch3 = curl_init();
-    curl_setopt($ch3, CURLOPT_URL, 'http://localhost:8001' . $url);
+    curl_setopt($ch3, CURLOPT_URL, 'http://localhost:8001'.$url);
     curl_setopt($ch3, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch3, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch3, CURLOPT_COOKIEJAR, '/tmp/web_cookies.txt');
@@ -105,6 +105,6 @@ if ($apiCode == 200) {
 
 echo "\nTest Summary:\n";
 echo "=============\n";
-echo "Web login: " . ($httpCode == 200 ? "✅" : "❌") . "\n";
-echo "Dashboard: " . ($dashCode == 200 ? "✅" : "❌") . "\n";
-echo "Backend API: " . ($apiCode == 200 ? "✅" : "❌") . "\n";
+echo 'Web login: '.($httpCode == 200 ? '✅' : '❌')."\n";
+echo 'Dashboard: '.($dashCode == 200 ? '✅' : '❌')."\n";
+echo 'Backend API: '.($apiCode == 200 ? '✅' : '❌')."\n";

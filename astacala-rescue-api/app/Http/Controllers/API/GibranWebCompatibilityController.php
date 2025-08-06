@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Http\Services\GibranWebAppAdapter;
 use App\Http\Services\CrossPlatformDataMapper;
 use App\Http\Services\CrossPlatformValidator;
+use App\Http\Services\GibranWebAppAdapter;
 use App\Models\DisasterReport;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\Validator;
 class GibranWebCompatibilityController extends Controller
 {
     protected GibranWebAppAdapter $gibranAdapter;
+
     protected CrossPlatformDataMapper $dataMapper;
+
     protected CrossPlatformValidator $validator;
 
     public function __construct(
@@ -38,7 +40,7 @@ class GibranWebCompatibilityController extends Controller
     /**
      * Submit disaster report from Gibran's web application
      * Endpoint: POST /api/gibran/pelaporans
-     * 
+     *
      * Maintains compatibility with Gibran's existing form structure
      */
     public function submitPelaporan(Request $request): JsonResponse
@@ -107,7 +109,7 @@ class GibranWebCompatibilityController extends Controller
     /**
      * Get disaster reports for Gibran's admin dashboard
      * Endpoint: GET /api/gibran/pelaporans
-     * 
+     *
      * Returns data formatted for Gibran's web dashboard display
      */
     public function getPelaporans(Request $request): JsonResponse
@@ -141,6 +143,7 @@ class GibranWebCompatibilityController extends Controller
             // Transform each report to format expected by web dashboard
             $transformedReports = $reports->getCollection()->map(function ($report) {
                 $metadata = is_string($report->metadata) ? json_decode($report->metadata, true) : $report->metadata;
+
                 return [
                     'id' => $report->id,
                     'title' => $report->title,
@@ -160,7 +163,7 @@ class GibranWebCompatibilityController extends Controller
                     'casualties' => $report->casualty_count ?? 0,
                     'platform_info' => [
                         'source' => $metadata['source_platform'] ?? 'web',
-                        'submission_method' => $metadata['submission_method'] ?? 'unknown'
+                        'submission_method' => $metadata['submission_method'] ?? 'unknown',
                     ],
                     'created_at' => $report->created_at,
                     'updated_at' => $report->updated_at,
@@ -277,7 +280,7 @@ class GibranWebCompatibilityController extends Controller
     /**
      * Handle user authentication for Gibran's web app
      * Endpoint: POST /api/gibran/auth/login
-     * 
+     *
      * Provides JWT tokens while maintaining session compatibility
      */
     public function webAuthLogin(Request $request): JsonResponse
@@ -289,7 +292,7 @@ class GibranWebCompatibilityController extends Controller
                 'remember' => 'boolean',
             ])->validate();
 
-            if (!Auth::attempt($validatedData)) {
+            if (! Auth::attempt($validatedData)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Email atau password salah',
@@ -337,7 +340,7 @@ class GibranWebCompatibilityController extends Controller
     /**
      * Get published disaster news for public endpoint
      * Endpoint: GET /api/gibran/berita-bencana
-     * 
+     *
      * Maintains compatibility with Gibran's public API
      */
     public function getBeritaBencana(Request $request): JsonResponse
@@ -395,7 +398,7 @@ class GibranWebCompatibilityController extends Controller
     /**
      * Get real publications from publications table
      * Endpoint: GET /api/gibran/publications
-     * 
+     *
      * Returns data formatted for Gibran's web dashboard display
      */
     public function getPublications(Request $request): JsonResponse
@@ -564,10 +567,10 @@ class GibranWebCompatibilityController extends Controller
 
             $report = DisasterReport::find($id);
 
-            if (!$report) {
+            if (! $report) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pelaporan tidak ditemukan'
+                    'message' => 'Pelaporan tidak ditemukan',
                 ], 404);
             }
 
@@ -575,8 +578,8 @@ class GibranWebCompatibilityController extends Controller
             if ($report->images()->exists()) {
                 foreach ($report->images as $image) {
                     // Delete physical file
-                    if (file_exists(storage_path('app/public/' . $image->file_path))) {
-                        unlink(storage_path('app/public/' . $image->file_path));
+                    if (file_exists(storage_path('app/public/'.$image->file_path))) {
+                        unlink(storage_path('app/public/'.$image->file_path));
                     }
                     $image->delete();
                 }
@@ -591,18 +594,18 @@ class GibranWebCompatibilityController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Pelaporan berhasil dihapus'
+                'message' => 'Pelaporan berhasil dihapus',
             ]);
         } catch (\Exception $e) {
             Log::error('Gibran Web App: Error deleting pelaporan', [
                 'report_id' => $id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menghapus pelaporan: ' . $e->getMessage()
+                'message' => 'Gagal menghapus pelaporan: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -616,10 +619,10 @@ class GibranWebCompatibilityController extends Controller
         try {
             $report = DisasterReport::with(['reporter', 'images'])->find($id);
 
-            if (!$report) {
+            if (! $report) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Pelaporan tidak ditemukan'
+                    'message' => 'Pelaporan tidak ditemukan',
                 ], 404);
             }
 
@@ -655,7 +658,7 @@ class GibranWebCompatibilityController extends Controller
                 'images' => $report->images ? $report->images->map(function ($image) {
                     return [
                         'id' => $image->id,
-                        'url' => asset('storage/' . $image->file_path),
+                        'url' => asset('storage/'.$image->file_path),
                         'file_path' => $image->file_path,
                         'file_type' => $image->file_type,
                         'file_size' => $image->file_size,
@@ -666,7 +669,7 @@ class GibranWebCompatibilityController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $data,
-                'message' => 'Detail pelaporan berhasil diambil'
+                'message' => 'Detail pelaporan berhasil diambil',
             ]);
         } catch (\Exception $e) {
             Log::error('Gibran Web App: Error getting pelaporan detail', [
@@ -676,7 +679,7 @@ class GibranWebCompatibilityController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal mengambil detail pelaporan'
+                'message' => 'Gagal mengambil detail pelaporan',
             ], 500);
         }
     }

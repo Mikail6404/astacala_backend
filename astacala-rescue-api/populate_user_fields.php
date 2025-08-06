@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__.'/vendor/autoload.php';
 
 use Illuminate\Database\Capsule\Manager as DB;
 
@@ -40,7 +40,7 @@ try {
         'Palembang',
         'Tangerang',
         'Depok',
-        'Bekasi'
+        'Bekasi',
     ];
 
     foreach ($admins as $admin) {
@@ -48,7 +48,7 @@ try {
         $placeOfBirth = $adminPlaces[array_rand($adminPlaces)];
 
         // Generate admin member number
-        $memberNumber = 'ADM' . str_pad($admin->id, 3, '0', STR_PAD_LEFT);
+        $memberNumber = 'ADM'.str_pad($admin->id, 3, '0', STR_PAD_LEFT);
 
         DB::table('users')
             ->where('id', $admin->id)
@@ -79,7 +79,7 @@ try {
         'Pontianak',
         'Banjarmasin',
         'Pekanbaru',
-        'Padang'
+        'Padang',
     ];
 
     foreach ($volunteers as $volunteer) {
@@ -87,7 +87,7 @@ try {
         $placeOfBirth = $volunteerPlaces[array_rand($volunteerPlaces)];
 
         // Generate volunteer member number
-        $memberNumber = 'VOL' . str_pad($volunteer->id, 3, '0', STR_PAD_LEFT);
+        $memberNumber = 'VOL'.str_pad($volunteer->id, 3, '0', STR_PAD_LEFT);
 
         DB::table('users')
             ->where('id', $volunteer->id)
@@ -104,7 +104,7 @@ try {
 
     // 3. Verification summary
     echo "3. Final Verification:\n";
-    echo "=" . str_repeat("=", 40) . "\n";
+    echo '='.str_repeat('=', 40)."\n";
 
     $stats = DB::table('users')
         ->whereIn('role', ['ADMIN', 'VOLUNTEER'])
@@ -144,6 +144,6 @@ try {
     echo "✅ USER FIELD POPULATION COMPLETED SUCCESSFULLY!\n";
     echo "🎯 All users now have place_of_birth and member_number data\n";
 } catch (Exception $e) {
-    echo "❌ Error: " . $e->getMessage() . "\n";
+    echo '❌ Error: '.$e->getMessage()."\n";
     exit(1);
 }

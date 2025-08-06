@@ -14,7 +14,7 @@ $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, 'http://localhost:8000/api/v1/users/admin-list');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $token,
+    'Authorization: Bearer '.$token,
     'Accept: application/json',
     'Content-Type: application/json',
 ]);
@@ -34,7 +34,7 @@ $ch2 = curl_init();
 curl_setopt($ch2, CURLOPT_URL, 'http://localhost:8000/api/v1/users/statistics');
 curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch2, CURLOPT_HTTPHEADER, [
-    'Authorization: Bearer ' . $token,
+    'Authorization: Bearer '.$token,
     'Accept: application/json',
     'Content-Type: application/json',
 ]);

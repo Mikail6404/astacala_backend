@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
-     * 
+     *
      * Adds web app compatibility fields to disaster_reports table
      * as specified in INTEGRATION_ROADMAP.md Phase 3 Week 4 Database Unification
      */
@@ -62,7 +62,7 @@ return new class extends Migration
                 'notification_status',
                 'verification_status',
                 'images',
-                'evidence_documents'
+                'evidence_documents',
             ]);
         });
     }

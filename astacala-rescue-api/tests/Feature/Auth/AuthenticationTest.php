@@ -2,18 +2,18 @@
 
 namespace Tests\Feature\Auth;
 
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Tests\TestCase;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Tests\TestCase;
 
 /**
  * Authentication Feature Tests for Astacala Rescue API
- * 
+ *
  * Tests the complete authentication flow including:
  * - User registration
- * - User login  
+ * - User login
  * - User logout
  * - Token management
  * - Validation and error handling
@@ -58,14 +58,14 @@ class AuthenticationTest extends TestCase
                         'name',
                         'email',
                         'role',
-                        'isActive'
+                        'isActive',
                     ],
                     'tokens' => [
                         'accessToken',
                         'tokenType',
-                        'expiresIn'
-                    ]
-                ]
+                        'expiresIn',
+                    ],
+                ],
             ])
             ->assertJson([
                 'success' => true,
@@ -75,8 +75,8 @@ class AuthenticationTest extends TestCase
                         'name' => 'Test User',
                         'email' => 'test@example.com',
                         'role' => 'VOLUNTEER',
-                    ]
-                ]
+                    ],
+                ],
             ]);
 
         // Verify user was created in database
@@ -163,14 +163,14 @@ class AuthenticationTest extends TestCase
                         'name',
                         'email',
                         'role',
-                        'profilePictureUrl'
+                        'profilePictureUrl',
                     ],
                     'tokens' => [
                         'accessToken',
                         'tokenType',
-                        'expiresIn'
-                    ]
-                ]
+                        'expiresIn',
+                    ],
+                ],
             ])
             ->assertJson([
                 'success' => true,
@@ -207,7 +207,7 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(401)
             ->assertJson([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ]);
 
         // Act - Non-existent email
@@ -220,7 +220,7 @@ class AuthenticationTest extends TestCase
         $response->assertStatus(401)
             ->assertJson([
                 'success' => false,
-                'message' => 'Invalid credentials'
+                'message' => 'Invalid credentials',
             ]);
     }
 
@@ -256,14 +256,14 @@ class AuthenticationTest extends TestCase
 
         // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->postJson('/api/auth/logout');
 
         // Assert
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Logged out successfully'
+                'message' => 'Logged out successfully',
             ]);
 
         // Verify token is revoked
@@ -300,7 +300,7 @@ class AuthenticationTest extends TestCase
 
         // Act
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/auth/me');
 
         // Assert
@@ -318,8 +318,8 @@ class AuthenticationTest extends TestCase
                     'emergencyContacts',
                     'joinedAt',
                     'isActive',
-                    'lastLogin'
-                ]
+                    'lastLogin',
+                ],
             ])
             ->assertJson([
                 'success' => true,
@@ -327,7 +327,7 @@ class AuthenticationTest extends TestCase
                     'name' => 'Test User',
                     'email' => 'test@example.com',
                     'phone' => '+628123456789',
-                ]
+                ],
             ]);
     }
 
@@ -363,7 +363,7 @@ class AuthenticationTest extends TestCase
         $startTime = microtime(true);
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/auth/me');
 
         $endTime = microtime(true);
@@ -387,7 +387,7 @@ class AuthenticationTest extends TestCase
 
         // Valid token should work
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/auth/me');
 
         $response->assertStatus(200);
@@ -396,7 +396,7 @@ class AuthenticationTest extends TestCase
         $user->tokens()->delete();
 
         $response = $this->withHeaders([
-            'Authorization' => 'Bearer ' . $token,
+            'Authorization' => 'Bearer '.$token,
         ])->getJson('/api/auth/me');
 
         $response->assertStatus(401);
@@ -437,7 +437,7 @@ class AuthenticationTest extends TestCase
             // Create user with specific role
             $user = User::factory()->create([
                 'role' => $role,
-                'email' => strtolower($role) . '@example.com',
+                'email' => strtolower($role).'@example.com',
             ]);
 
             // Login should work for all roles
@@ -451,9 +451,9 @@ class AuthenticationTest extends TestCase
                     'success' => true,
                     'data' => [
                         'user' => [
-                            'role' => $role
-                        ]
-                    ]
+                            'role' => $role,
+                        ],
+                    ],
                 ]);
         }
     }

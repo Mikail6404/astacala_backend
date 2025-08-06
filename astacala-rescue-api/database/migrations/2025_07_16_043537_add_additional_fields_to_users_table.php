@@ -38,7 +38,7 @@ return new class extends Migration
                 'role',
                 'emergency_contacts',
                 'is_active',
-                'last_login'
+                'last_login',
             ]);
             $table->dropIndex(['role']);
         });
