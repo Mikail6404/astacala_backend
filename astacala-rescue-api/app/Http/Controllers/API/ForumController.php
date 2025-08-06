@@ -9,13 +9,45 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use Exception;
 
 class ForumController extends Controller
 {
     /**
-     * Get all messages for a disaster report
+     * Get all messages - General forum listing (when no specific disaster report)
      */
-    public function index(Request $request, $disasterReportId): JsonResponse
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            // Get recent forum messages across all disaster reports
+            $messages = ForumMessage::with(['user', 'disasterReport'])
+                ->orderBy('created_at', 'desc')
+                ->paginate(20);
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'messages' => $messages->items(),
+                    'pagination' => [
+                        'current_page' => $messages->currentPage(),
+                        'total_pages' => $messages->lastPage(),
+                        'total_messages' => $messages->total(),
+                        'has_more' => $messages->hasMorePages(),
+                    ]
+                ]
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve forum messages: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get all messages for a specific disaster report
+     */
+    public function indexForReport(Request $request, $disasterReportId): JsonResponse
     {
         try {
             // Verify disaster report exists

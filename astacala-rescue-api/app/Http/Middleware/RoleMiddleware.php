@@ -28,13 +28,14 @@ class RoleMiddleware
 
         // Check if user has any of the required roles
         if (!empty($roles)) {
-            $userRole = $user->role ?? 'user'; // Default role is 'user'
+            $userRole = strtolower($user->role ?? 'user'); // Normalize to lowercase
+            $normalizedRoles = array_map('strtolower', $roles); // Normalize required roles
 
-            if (!in_array($userRole, $roles)) {
+            if (!in_array($userRole, $normalizedRoles)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Insufficient permissions. Required roles: ' . implode(', ', $roles),
-                    'user_role' => $userRole,
+                    'user_role' => $user->role,
                     'required_roles' => $roles
                 ], Response::HTTP_FORBIDDEN);
             }

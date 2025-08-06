@@ -29,6 +29,9 @@ class DisasterReport extends Model
         'verified_at',
         'metadata',
         'incident_timestamp',
+        'coordinate_display',
+        'reporter_phone',
+        'reporter_username',
     ];
 
     protected function casts(): array

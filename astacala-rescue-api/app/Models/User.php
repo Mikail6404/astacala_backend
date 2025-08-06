@@ -26,6 +26,8 @@ class User extends Authenticatable
         'role',
         'organization',
         'birth_date',
+        'place_of_birth',    // NEW: for web app compatibility
+        'member_number',     // NEW: for web app compatibility
         'emergency_contacts',
         'is_active',
         'email_verified',

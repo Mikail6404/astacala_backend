@@ -22,20 +22,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Health check endpoint (public)
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'message' => 'Astacala Rescue API is running',
-        'timestamp' => now()->toISOString(),
-        'version' => '1.0.0',
-        'platform_support' => ['mobile', 'web'],
-        'integration_status' => 'cross-platform-ready'
-    ]);
-});
-
 // API Version 1 Routes
 Route::prefix('v1')->group(function () {
+
+    // Health check endpoint (public)
+    Route::get('/health', function () {
+        return response()->json([
+            'status' => 'ok',
+            'message' => 'Astacala Rescue API is running',
+            'timestamp' => now()->toISOString(),
+            'version' => '1.0.0',
+            'platform_support' => ['mobile', 'web'],
+            'integration_status' => 'cross-platform-ready'
+        ]);
+    });
 
     // Authentication routes (public)
     Route::prefix('auth')->group(function () {
@@ -83,16 +83,21 @@ Route::prefix('v1')->group(function () {
             Route::put('/profile', [UserController::class, 'update']);
             Route::post('/profile/avatar', [UserController::class, 'uploadAvatar']);
             Route::get('/reports', [DisasterReportController::class, 'userReports']);
-            Route::get('/{id}', [UserController::class, 'getUserById']);
 
-            // Admin user management
+            // Admin user management - MUST come before wildcard routes
             Route::middleware('role:admin,super_admin')->group(function () {
                 Route::get('/admin-list', [UserController::class, 'adminList']);
+                Route::get('/volunteer-list', [UserController::class, 'volunteerList']);
                 Route::post('/create-admin', [UserController::class, 'createAdmin']);
+                Route::get('/statistics', [UserController::class, 'statistics']);
                 Route::put('/{id}/role', [UserController::class, 'updateRole']);
                 Route::put('/{id}/status', [UserController::class, 'updateStatus']);
-                Route::get('/statistics', [UserController::class, 'statistics']);
+                Route::put('/{id}', [UserController::class, 'updateUserById']);
+                Route::delete('/{id}', [UserController::class, 'deleteUserById']);
             });
+
+            // Wildcard routes must come LAST
+            Route::get('/{id}', [UserController::class, 'getUserById']);
         });
 
         // Publications (Web app integration)
@@ -132,8 +137,8 @@ Route::prefix('v1')->group(function () {
             // Document uploads for disaster reports
             Route::post('/disasters/{reportId}/documents', [CrossPlatformFileUploadController::class, 'uploadDocument']);
 
-            // User avatar upload
-            Route::post('/avatar', [CrossPlatformFileUploadController::class, 'uploadUserAvatar']);
+            // User avatar upload - TEMPORARY FIX using basic upload
+            Route::post('/avatar', [\App\Http\Controllers\API\BasicFileUploadController::class, 'uploadAvatar']);
 
             // Storage statistics (admin only)
             Route::middleware('role:admin,super_admin')->group(function () {
@@ -236,16 +241,23 @@ Route::prefix('gibran')->group(function () {
     // Public disaster news endpoint (maintains Gibran's existing API)
     Route::get('/berita-bencana', [GibranWebCompatibilityController::class, 'getBeritaBencana']);
 
+    // Public publications endpoint for real publications
+    Route::get('/publications', [GibranWebCompatibilityController::class, 'getPublications']);
+
+    // Public pelaporans endpoint for read access (web dashboard needs this)
+    Route::get('/pelaporans', [GibranWebCompatibilityController::class, 'getPelaporans']);
+
     // Authentication for Gibran's admin panel
     Route::post('/auth/login', [GibranWebCompatibilityController::class, 'webAuthLogin']);
 
     // Protected routes for Gibran's admin dashboard
     Route::middleware('auth:sanctum')->group(function () {
 
-        // Disaster report management (pelaporans)
+        // Disaster report management (pelaporans) - write operations only
         Route::prefix('pelaporans')->group(function () {
-            Route::get('/', [GibranWebCompatibilityController::class, 'getPelaporans']);
             Route::post('/', [GibranWebCompatibilityController::class, 'submitPelaporan']);
+            Route::get('/{id}', [GibranWebCompatibilityController::class, 'showPelaporan']);
+            Route::delete('/{id}', [GibranWebCompatibilityController::class, 'deletePelaporan']);
             Route::post('/{id}/verify', [GibranWebCompatibilityController::class, 'verifyPelaporan']);
         });
 

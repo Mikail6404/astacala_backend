@@ -26,7 +26,9 @@ class Publication extends Model
         'archived_by',
         'view_count',
         'meta_description',
-        'slug'
+        'slug',
+        'created_by',
+        'creator_name',
     ];
 
     protected function casts(): array

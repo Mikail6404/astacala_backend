@@ -152,7 +152,12 @@ class GibranWebCompatibilityController extends Controller
                     'latitude' => $report->latitude,
                     'longitude' => $report->longitude,
                     'location_name' => $report->location_name,
+                    'coordinate_display' => $report->coordinate_display ?? '',
                     'incident_timestamp' => $report->incident_timestamp,
+                    'reporter_phone' => $report->reporter_phone ?? '',
+                    'reporter_username' => $report->reporter_username ?? '',
+                    'personnel_count' => $report->personnel_count ?? 0,
+                    'casualties' => $report->casualty_count ?? 0,
                     'platform_info' => [
                         'source' => $metadata['source_platform'] ?? 'web',
                         'submission_method' => $metadata['submission_method'] ?? 'unknown'
@@ -358,7 +363,7 @@ class GibranWebCompatibilityController extends Controller
                     'pblk_titik_kordinat_bencana' => "{$report->latitude},{$report->longitude}",
                     'pblk_skala_bencana' => $this->mapSeverityToGibranScale($report->severity_level),
                     'deskripsi_umum' => $report->description,
-                    'pblk_foto_bencana' => $report->images->first()?->image_path ?? null,
+                    'pblk_foto_bencana' => $report->images ? $report->images->first()?->image_path : null,
                     'created_at' => $report->created_at->toISOString(),
                     'updated_at' => $report->updated_at->toISOString(),
                 ];
@@ -382,6 +387,80 @@ class GibranWebCompatibilityController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Gagal mengambil berita bencana',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get real publications from publications table
+     * Endpoint: GET /api/gibran/publications
+     * 
+     * Returns data formatted for Gibran's web dashboard display
+     */
+    public function getPublications(Request $request): JsonResponse
+    {
+        try {
+            $page = $request->get('page', 1);
+            $limit = $request->get('limit', 20);
+            $status = $request->get('status', 'published');
+            $type = $request->get('type');
+
+            // Build query for publications
+            $query = \App\Models\Publication::with(['author']);
+
+            // Apply Gibran-specific filters
+            if ($status) {
+                $query->where('status', $status);
+            }
+
+            if ($type) {
+                $query->where('type', $type);
+            }
+
+            $publications = $query->orderBy('created_at', 'desc')
+                ->paginate($limit, ['*'], 'page', $page);
+
+            // Transform each publication to format expected by web dashboard
+            $transformedPublications = $publications->getCollection()->map(function ($publication) {
+                return [
+                    'id' => $publication->id,
+                    'title' => $publication->title,
+                    'content' => $publication->content,
+                    'type' => $publication->type,
+                    'category' => $publication->category,
+                    'status' => $publication->status,
+                    'created_by' => $publication->created_by ?? '',
+                    'creator_name' => $publication->creator_name ?? '',
+                    'author_id' => $publication->author_id,
+                    'author_name' => $publication->author ? $publication->author->name : '',
+                    'published_at' => $publication->published_at,
+                    'created_at' => $publication->created_at,
+                    'updated_at' => $publication->updated_at,
+                ];
+            })->toArray();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data publikasi berhasil diambil',
+                'data' => $transformedPublications,
+                'pagination' => [
+                    'current_page' => $publications->currentPage(),
+                    'last_page' => $publications->lastPage(),
+                    'per_page' => $publications->perPage(),
+                    'total' => $publications->total(),
+                    'from' => $publications->firstItem(),
+                    'to' => $publications->lastItem(),
+                ],
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Gibran Web App: Failed to get publications', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengambil data publikasi',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -469,5 +548,136 @@ class GibranWebCompatibilityController extends Controller
         ];
 
         return $mapping[$severity] ?? 'Sedang';
+    }
+
+    /**
+     * Delete disaster report (Admin action)
+     * Endpoint: DELETE /api/gibran/pelaporans/{id}
+     */
+    public function deletePelaporan($id): JsonResponse
+    {
+        try {
+            Log::info('Gibran Web App: Delete pelaporan requested', [
+                'report_id' => $id,
+                'admin_id' => Auth::id(),
+            ]);
+
+            $report = DisasterReport::find($id);
+
+            if (!$report) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pelaporan tidak ditemukan'
+                ], 404);
+            }
+
+            // Delete associated files if any
+            if ($report->images()->exists()) {
+                foreach ($report->images as $image) {
+                    // Delete physical file
+                    if (file_exists(storage_path('app/public/' . $image->file_path))) {
+                        unlink(storage_path('app/public/' . $image->file_path));
+                    }
+                    $image->delete();
+                }
+            }
+
+            // Delete the report
+            $report->delete();
+
+            Log::info('Gibran Web App: Pelaporan deleted successfully', [
+                'deleted_report_id' => $id,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pelaporan berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Gibran Web App: Error deleting pelaporan', [
+                'report_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus pelaporan: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get single disaster report details
+     * Endpoint: GET /api/gibran/pelaporans/{id}
+     */
+    public function showPelaporan($id): JsonResponse
+    {
+        try {
+            $report = DisasterReport::with(['reporter', 'images'])->find($id);
+
+            if (!$report) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pelaporan tidak ditemukan'
+                ], 404);
+            }
+
+            $data = [
+                'id' => $report->id,
+                'title' => $report->title,
+                'description' => $report->description,
+                'location_name' => $report->location_name,
+                'coordinates' => $report->coordinates,
+                'coordinate_display' => $report->coordinate_display,
+                'disaster_type' => $report->disaster_type,
+                'severity_level' => $report->severity_level,
+                'affected_population' => $report->affected_population,
+                'casualties' => $report->casualties,
+                'infrastructure_damage' => $report->infrastructure_damage,
+                'estimated_loss' => $report->estimated_loss,
+                'team_name' => $report->team_name,
+                'team_size' => $report->team_size,
+                'contact_phone' => $report->contact_phone,
+                'reporter_phone' => $report->reporter_phone,
+                'reporter_username' => $report->reporter_username,
+                'status' => $report->status,
+                'verification_status' => $report->verification_status,
+                'verification_notes' => $report->verification_notes,
+                'created_at' => $report->created_at,
+                'updated_at' => $report->updated_at,
+                'reporter' => $report->reporter ? [
+                    'id' => $report->reporter->id,
+                    'name' => $report->reporter->name,
+                    'username' => $report->reporter->username,
+                    'email' => $report->reporter->email,
+                ] : null,
+                'images' => $report->images ? $report->images->map(function ($image) {
+                    return [
+                        'id' => $image->id,
+                        'url' => asset('storage/' . $image->file_path),
+                        'file_path' => $image->file_path,
+                        'file_type' => $image->file_type,
+                        'file_size' => $image->file_size,
+                    ];
+                }) : [],
+            ];
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'message' => 'Detail pelaporan berhasil diambil'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Gibran Web App: Error getting pelaporan detail', [
+                'report_id' => $id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengambil detail pelaporan'
+            ], 500);
+        }
     }
 }

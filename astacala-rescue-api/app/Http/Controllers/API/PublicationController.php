@@ -19,7 +19,7 @@ class PublicationController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Publication::with(['author:id,name,email', 'reports:id,title,disaster_type'])
+            $query = Publication::with(['author'])
                 ->where('status', 'published')
                 ->orderBy('published_at', 'desc');
 
@@ -72,14 +72,14 @@ class PublicationController extends Controller
     public function show($id)
     {
         try {
-            $publication = Publication::with([
-                'author:id,name,email,created_at',
-                'reports:id,title,disaster_type,severity,status,created_at',
-                'comments.user:id,name,email'
-            ])->findOrFail($id);
+            $publication = Publication::with(['author'])->findOrFail($id);
 
-            // Increment view count
-            $publication->increment('view_count');
+            // Increment view count safely
+            try {
+                $publication->increment('view_count');
+            } catch (\Exception $e) {
+                // Ignore view count increment errors
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -157,7 +157,7 @@ class PublicationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Publication created successfully',
-                'data' => $publication->load(['author:id,name,email', 'reports:id,title,disaster_type'])
+                'data' => $publication->load(['author'])
             ], Response::HTTP_CREATED);
         } catch (\Exception $e) {
             return response()->json([
@@ -233,7 +233,7 @@ class PublicationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Publication updated successfully',
-                'data' => $publication->load(['author:id,name,email', 'reports:id,title,disaster_type'])
+                'data' => $publication->load(['author'])
             ], Response::HTTP_OK);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -320,7 +320,7 @@ class PublicationController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Publication published successfully',
-                'data' => $publication->load(['author:id,name,email', 'reports:id,title,disaster_type'])
+                'data' => $publication->load(['author'])
             ], Response::HTTP_OK);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([

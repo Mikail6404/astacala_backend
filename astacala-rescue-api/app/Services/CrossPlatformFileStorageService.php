@@ -9,10 +9,29 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Exception;
 
 /**
  * Cross-Platform File Storage Service
- * Handles unified file upload, validation, and storage for both mobile and web platforms
+ * Handles unified file upload, validation, and st    /**
+     * Generate thumbnail for uploaded image
+     */
+    private function generateThumbnail(UploadedFile $file, string $path, string $filename): string
+    {
+        // Skip thumbnail generation if no image manager
+        if ($this->imageManager === null) {
+            return ''; // Return empty string, no thumbnail
+        }
+
+        $thumbnailFilename = 'thumb_' . $filename;
+        $thumbnailPath = self::THUMBNAILS_PATH . '/' . $path . '/' . $thumbnailFilename;
+
+        // Read and resize image for thumbnail
+        $image = $this->imageManager->read($file->getRealPath());
+        $image->scale(width: self::THUMBNAIL_WIDTH, height: self::THUMBNAIL_HEIGHT);
+
+        // Save thumbnail
+        $fullThumbnailPath = storage_path('app/public/' . $thumbnailPath); mobile and web platforms
  */
 class CrossPlatformFileStorageService
 {
@@ -42,7 +61,18 @@ class CrossPlatformFileStorageService
 
     public function __construct()
     {
-        $this->imageManager = new ImageManager(new Driver());
+        // Check if GD extension is available, if not use basic file storage
+        try {
+            if (extension_loaded('gd')) {
+                $this->imageManager = new ImageManager(new Driver());
+            } else {
+                $this->imageManager = null; // Will use basic file storage
+                Log::warning('GD extension not available, using basic file storage');
+            }
+        } catch (Exception $e) {
+            $this->imageManager = null;
+            Log::warning('Image manager initialization failed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -374,6 +404,11 @@ class CrossPlatformFileStorageService
      */
     private function processAndStoreImage(UploadedFile $file, string $path, string $filename): string
     {
+        // If no image manager available, use basic file storage
+        if ($this->imageManager === null) {
+            return $this->storeBasicFile($file, $path, $filename);
+        }
+
         // Read and optimize image
         $image = $this->imageManager->read($file->getRealPath());
 

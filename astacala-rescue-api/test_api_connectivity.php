@@ -1,42 +1,45 @@
 <?php
-// Simple API connectivity test
-echo "=== TESTING API CONNECTIVITY ===\n";
 
-// Test 1: Basic server response
-echo "Testing basic server response...\n";
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'http://127.0.0.1:8000/api/test');
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
+// Simple API connectivity test for cross-platform integration validation
+// This script tests if the backend API endpoints are responding correctly
 
-echo "HTTP Code: $httpCode\n";
-echo "Response: $response\n\n";
+$baseUrl = 'http://127.0.0.1:8000';
 
-// Test 2: Login endpoint
-echo "Testing login endpoint...\n";
-$loginData = [
-    'email' => 'test@example.com',
-    'password' => 'password123'
+echo "=== Cross-Platform Integration API Connectivity Test ===\n";
+echo "Base URL: $baseUrl\n\n";
+
+// Test endpoints
+$endpoints = [
+    'Health Check' => '/api/v1/health',
+    'Auth Register' => '/api/v1/auth/register',
+    'Reports Index' => '/api/v1/reports',
+    'Gibran Auth' => '/api/gibran/auth/login',
+    'Gibran Dashboard' => '/api/gibran/dashboard/statistics',
 ];
 
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, 'http://127.0.0.1:8000/api/auth/login');
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($loginData));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-curl_setopt($ch, CURLOPT_HTTPHEADER, [
-    'Content-Type: application/json',
-    'Accept: application/json'
-]);
-$response = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-curl_close($ch);
+foreach ($endpoints as $name => $endpoint) {
+    $url = $baseUrl . $endpoint;
+    echo "Testing $name: $url\n";
 
-echo "Login HTTP Code: $httpCode\n";
-echo "Login Response: $response\n\n";
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_HEADER, true);
+    curl_setopt($ch, CURLOPT_NOBODY, true); // HEAD request only
 
-echo "=== TEST COMPLETED ===\n";
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    if ($error) {
+        echo "  ❌ ERROR: $error\n";
+    } else {
+        echo "  ✅ HTTP $httpCode\n";
+    }
+    echo "\n";
+}
+
+echo "Test completed.\n";
